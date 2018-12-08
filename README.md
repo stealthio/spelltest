@@ -17,8 +17,10 @@ The other feature are spells, they are implemented via different magic scrolls t
 * Light
 * Day
 * Night
+* Create Pillar (Stone)
+* Create Wall (Stone)
 
-with more to come.
+with more to come. Each of the spells have a different amount of charges that are depleted by using it. The charges left are shown in the description of the item.
 
 ### Change log
 
