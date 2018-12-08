@@ -21,6 +21,34 @@ minetest.register_craftitem("spelltest:spell_heal",{
 	end
 })
 
+minetest.register_craftitem("spelltest:spell_low_gravity",{
+	description = "Spell - Low Gravity",
+	inventory_image = "spelltest_spell_yellow.png",
+	on_use = function(itemstack, user, pointed_thing)
+		-- Spell parameters
+		local max_uses = 5
+		local gravity_value = 0.1
+		local default_gravity_value = 1
+		local duration = 15
+		
+		itemstack:set_wear(itemstack:get_wear() + 65535 / (max_uses - 1))
+		
+		user:set_physics_override({
+			gravity = gravity_value,
+		})
+		minetest.after(duration, function()
+			user:set_physics_override({
+				gravity = default_gravity_value,
+			})
+		end)
+		local meta = itemstack:get_meta()
+		if meta then
+			meta:set_string("description", "Spell - Low Gravity | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
+		end
+		return itemstack
+	end
+})
+
 minetest.register_craftitem("spelltest:spell_light",{
 	description = "Spell - Light",
 	inventory_image = "spelltest_spell_white.png",
@@ -81,7 +109,72 @@ minetest.register_craftitem("spelltest:spell_pillar_stone",{
 		
 		local meta = itemstack:get_meta()
 		if meta then
-			meta:set_string("description", "Spell - Light | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
+			meta:set_string("description", "Spell - Stonepillar | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
+		end
+		return itemstack
+	end
+})
+
+minetest.register_craftitem("spelltest:spell_water",{
+	description = "Spell - Water",
+	inventory_image = "spelltest_spell_blue.png",
+	on_use = function(itemstack, user, pointed_thing)
+		-- Spell parameters
+		local max_uses = 10
+		local block = "default:water_source"
+		
+		itemstack:set_wear(itemstack:get_wear() + 65535 / (max_uses - 1))
+		
+		local pos = minetest.get_pointed_thing_position(pointed_thing, true)
+		if not pos then
+			return itemstack
+		end
+		minetest.set_node(pos, {name = block})
+		
+		local meta = itemstack:get_meta()
+		if meta then
+			meta:set_string("description", "Spell - Water | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
+		end
+		return itemstack
+	end
+})
+
+minetest.register_craftitem("spelltest:spell_flood",{
+	description = "Spell - Flood",
+	inventory_image = "spelltest_spell_blue.png",
+	on_use = function(itemstack, user, pointed_thing)
+		-- Spell parameters
+		local max_uses = 5
+		local length = 5
+		local block = "default:river_water_source"
+		itemstack:set_wear(itemstack:get_wear() + 65535 / (max_uses - 1))
+		
+		local pos = minetest.get_pointed_thing_position(pointed_thing, true)
+		if not pos then
+			return itemstack
+		end
+		
+		local player_pos = user:get_pos()
+		
+		local xdif = pos.x - player_pos.x
+		local zdif = pos.z - player_pos.z
+		local dir = 1
+		if math.abs(xdif) > math.abs(zdif) then
+			dir = 0
+		end
+
+		for i=1, length do
+			minetest.set_node(pos, {name = block})
+			if (dir == 0) then
+				pos.x = pos.x + 1
+			else
+				pos.z = pos.z + 1
+			end
+		end
+		
+		local meta = itemstack:get_meta()
+		if meta then
+			meta:set_string("description", "Spell - Flood | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
 		end
 		return itemstack
 	end
@@ -127,13 +220,11 @@ minetest.register_craftitem("spelltest:spell_wall_stone",{
 		
 		local meta = itemstack:get_meta()
 		if meta then
-			meta:set_string("description", "Spell - Light | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
+			meta:set_string("description", "Spell - Stonewall | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * max_uses + 1)) .. " uses")
 		end
 		return itemstack
 	end
 })
-
-
 
 minetest.register_entity("spelltest:light_projectile",{
 	textures = {"spelltest_light.png"},
@@ -168,4 +259,14 @@ minetest.register_node("spelltest:light",{
 
 function round(n)
 	return n % 1 >= 0.5 and math.ceil(n) or math.floor(n)
+end
+
+function sign(n)
+	if n < 0 then
+		return -1
+	elseif n > 0 then
+		return 1
+	else
+		return 0
+	end
 end

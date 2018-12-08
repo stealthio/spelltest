@@ -19,6 +19,9 @@ The other feature are spells, they are implemented via different magic scrolls t
 * Night
 * Create Pillar (Stone)
 * Create Wall (Stone)
+* Create Water
+* Flood (Creates a small water-stream)
+* Low Gravity
 
 with more to come. Each of the spells have a different amount of charges that are depleted by using it. The charges left are shown in the description of the item.
 
