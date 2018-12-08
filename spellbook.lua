@@ -24,8 +24,8 @@ The following items are added by this mod:
 element declares which item is being created and
 the second + third define which item and how many of it are required--]]
 default_recipes = {
-	{"default:dirt",2,"default:sand"}, -- Trade 2 dirt into 1 and
-	{"default:sand",2,"default:dirt"}  -- Trade 2 sand into 1 dirt
+	{"minerpg:spell_light",5,"default:torch"},
+	{"minerpg:spell_heal",3,"default:apple"}
 }
 
 
