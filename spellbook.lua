@@ -24,8 +24,8 @@ The following items are added by this mod:
 element declares which item is being created and
 the second + third define which item and how many of it are required--]]
 default_recipes = {
-	{"minerpg:spell_light",5,"default:torch"},
-	{"minerpg:spell_heal",3,"default:apple"}
+	{"spelltest:spell_light",5,"default:torch"},
+	{"spelltest:spell_heal_weak",3,"default:apple"}
 }
 
 

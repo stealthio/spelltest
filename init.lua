@@ -1,3 +1,5 @@
 path=minetest.get_modpath("spelltest")
 dofile(path..'/spells.lua')
 dofile(path..'/spellbook.lua')
+dofile(path..'/researcher.lua')
+dofile(path..'/crafting.lua')
