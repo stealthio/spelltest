@@ -147,7 +147,7 @@ minetest.register_on_newplayer(function(player)
 	local r = player:get_attribute("recipes")
 	if not r then
 		
-		player:set_attribute("recipes", recipe_to_str(default_recipes))
+		player:set_attribute("recipes", minetest.serialize(default_recipes))
 	end
 end)
 
@@ -159,7 +159,7 @@ minetest.register_on_joinplayer(function(player)
 	if not r then
 		local recipes = default_recipes
 		if recipes then
-			player:set_attribute("recipes", recipe_to_str(recipes))
+			player:set_attribute("recipes", minetest.serialize(recipes))
 		end
 	end
 end)
