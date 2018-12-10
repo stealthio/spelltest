@@ -2,8 +2,8 @@
 
 --[[
 Every Player has the "recipes" attribute where a recipe table is stored as a string. You can
-convert it back to a table by using the recipe_to_str function and convert it back into a
-string using the str_to_recipe function
+convert it back to a table by using the minetest.serialize function and convert it back into a
+string using the minetest.deserialize function
 
 The following Commands are added by this mod:
 - /add_recipe <player> <item_created> <amount> <item_cost>
@@ -11,8 +11,8 @@ The following Commands are added by this mod:
 
 These are the main functions:
 - add_recipe_to_player(player, item_created, amount, item_cost)
-- recipe_to_str(recipe)
-- str_to_recipe(str)
+- minetest.serialize(recipe)
+- minetest.deserialize(str)
 
 The following items are added by this mod:
 - spelltest:spellbook
@@ -28,30 +28,21 @@ default_recipes = {
 	{"spelltest:spell_heal_weak",3,"default:apple"}
 }
 
-
-
 local item_mapping = {}
 for key, val in pairs(minetest.registered_items) do
     table.insert(item_mapping, key)
 end
 
--- for name,node in pairs(minetest.registered_nodes) do
-  -- if type(node.drop)=='string' then
-    -- add(node.drop,item_mapping)
-  -- end
--- end
--- item_mapping=makeunique(item_mapping)
-
 function add_recipe_to_player(player, item_created, amount, item_cost)
 	if not player then
 		return false
 	end
-	local recipes = str_to_recipe(player:get_attribute("recipes"))
+	local recipes = minetest.deserialize(player:get_attribute("recipes"))
 	if not recipes then
 		recipes = {}
 	end
 	table.insert(recipes, {item_created, amount, item_cost})
-	player:set_attribute("recipes", recipe_to_str(recipes))
+	player:set_attribute("recipes", minetest.serialize(recipes))
 	return true
 end
 
@@ -94,20 +85,13 @@ minetest.register_chatcommand("reset_recipes", {
 		end
 })
 
-function str_to_recipe(s)
-	if not (s) or s == "nil" then
-		return
-	end
-	return (loadstring)("return "..s)()
-end
-
 minetest.register_craftitem("spelltest:spellbook", {
 	description = "Spellbook",
 	inventory_image = "spelltest_spellbook.png",
 	wield_image = "spelltest_spellbook_open.png",
 	on_use = function(itemstack, user, pointed_thing)
 		local recipes = user:get_attribute("recipes")
-		recipes = str_to_recipe(recipes)--(loadstring)("return "..recipes)()
+		recipes = minetest.deserialize(recipes)--(loadstring)("return "..recipes)()
 		if not (recipes) then
 			return
 		end
@@ -136,7 +120,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 	if fields.spells then
 		local event = minetest.explode_textlist_event(fields.spells)
 		local recipes = player:get_attribute("recipes")
-		recipes = str_to_recipe(recipes)
+		recipes = minetest.deserialize(recipes)
 		local recipe = recipes[event.index]
 		
 		if event.type == "DCL" then
@@ -179,32 +163,3 @@ minetest.register_on_joinplayer(function(player)
 		end
 	end
 end)
-
--- http://lua-users.org/wiki/TableUtils
-function recipe_to_str ( v )
-  if "string" == type( v ) then
-    v = string.gsub( v, "\n", "\\n" )
-    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
-      return "'" .. v .. "'"
-    end
-    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
-  else
-    return "table" == type( v ) and table_to_str( v ) or
-      tostring( v )
-  end
-end
-
-function table_to_str( tbl )
-  local result, done = {}, {}
-  for k, v in ipairs( tbl ) do
-    table.insert( result, recipe_to_str( v ) )
-    done[ k ] = true
-  end
-  for k, v in pairs( tbl ) do
-    if not done[ k ] then
-      table.insert( result,
-        table.key_to_str( k ) .. "=" .. recipe_to_str( v ) )
-    end
-  end
-  return "{" .. table.concat( result, "," ) .. "}"
-end
