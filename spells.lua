@@ -30,24 +30,32 @@ function register_projectile_spell(name, description, image, uses, texture, velo
 	register_spell(name, description, image, {entity ="spelltest:" .. name .. "_projectile"}, projectile_create, uses)
 end
 
-function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parameters, p_on_collision)
+function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parameters, p_on_collision, p_collide_with_entities)
 	minetest.register_entity("spelltest:" .. p_name,{
 		textures = {p_texture},
 		velocity = p_velocity,
 		collisionbox = {0,0,0,0,0,0},
 		prev_pos = {x= 0,y = 0 ,z = 0},
-		on_activate = function(self, staticdata)
-			
-		end,
 		on_step = function(self, obj, pos)
+			p_collide_with_entities = p_collide_with_entities or true
 			local remove = minetest.after(p_duration, function()
 				self.object:remove()
 			end)
 			local pos = self.object:getpos()
 			local n = minetest.get_node(pos).name
 			if n ~= "spelltest:" .. p_name and n ~= "air" and prev_pos then
+				p_parameters.self = self.object
 				p_on_collision(prev_pos, curr_pos, p_parameters)
-				self.object:remove()
+				--self.object:remove()
+			end
+			if p_collide_with_entities then
+				local objs = minetest.get_objects_inside_radius({x=pos.x, y=pos.y, z=pos.z}, 1)
+				for k, obj in pairs(objs) do
+					if obj:get_luaentity().name ~= "spelltest:" .. p_name and obj:get_luaentity().name ~= "__builtin:item" then
+						p_parameters.self = self.object
+						p_on_collision(prev_pos, curr_pos, p_parameters)
+					end
+				end
 			end
 			prev_pos = {x=pos.x, y = pos.y, z = pos.z}
 		end
@@ -201,11 +209,30 @@ register_spell("spell_wall_of_china", "Wall of China", "spelltest_spell_red.png"
 register_projectile_spell("spell_light", "Light", "spelltest_spell_white.png", 5,
 						  "spelltest_light.png", 0.3, 2, {block = "spelltest:light"}, function(prev_pos, pos, parameter)
 		minetest.set_node(prev_pos, {name = parameter.block})
+		parameter.self:remove()
 	end)
 
 register_projectile_spell("spell_waterball", "Waterball", "spelltest_spell_blue.png", 5,
 						  "spelltest_light.png", 0.5, 2, {block = "default:water_source"}, function(prev_pos, pos, parameter)
 		minetest.set_node(prev_pos, {name = parameter.block})
+		parameter.self:remove()
+	end)
+	
+register_projectile_spell("spell_fireball", "Fireball", "spelltest_spell_red.png", 5,
+						  "spelltest_light.png", 0.5, 2, {}, function(prev_pos, pos, parameter)
+		pos = parameter.self:getpos()
+		local objs = minetest.get_objects_inside_radius({x=pos.x, y=pos.y, z=pos.z},2)
+		for k, obj in pairs(objs) do
+			if obj:get_luaentity() ~= nil then
+				if obj:get_luaentity().name ~= "spelltest:spell_fireball" and obj:get_luaentity().name ~= "__builtin:item" then
+					obj:punch(parameter.self, 1.0, {
+						full_punch_interval=1.0,
+						damage_groups={fleshy=8},
+					}, nil)
+				end
+			end
+		end
+		parameter.self:remove()
 	end)
 
 
