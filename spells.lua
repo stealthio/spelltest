@@ -2,6 +2,7 @@ function register_spell(p_name, p_description, p_image, p_parameters, p_spell_ef
 	minetest.register_craftitem("spelltest:" .. p_name,{
 		description = p_description,
 		inventory_image = p_image,
+		stack_max = 1,
 		on_use = function(itemstack, user, pointed_thing)
 			itemstack:set_wear(itemstack:get_wear() + 65535 / (p_uses - 1))
 			p_spell_effect(itemstack, user, pointed_thing, p_parameters, p_uses, p_description)
@@ -30,14 +31,16 @@ function register_projectile_spell(name, description, image, uses, texture, velo
 	register_spell(name, description, image, {entity ="spelltest:" .. name .. "_projectile"}, projectile_create, uses)
 end
 
-function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parameters, p_on_collision, p_collide_with_entities)
+function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parameters, p_on_collision)
 	minetest.register_entity("spelltest:" .. p_name,{
 		textures = {p_texture},
 		velocity = p_velocity,
 		collisionbox = {0,0,0,0,0,0},
 		prev_pos = {x= 0,y = 0 ,z = 0},
+		on_activate = function(self, staticdata)
+			
+		end,
 		on_step = function(self, obj, pos)
-			p_collide_with_entities = p_collide_with_entities or true
 			local remove = minetest.after(p_duration, function()
 				self.object:remove()
 			end)
@@ -46,16 +49,7 @@ function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parame
 			if n ~= "spelltest:" .. p_name and n ~= "air" and prev_pos then
 				p_parameters.self = self.object
 				p_on_collision(prev_pos, curr_pos, p_parameters)
-				--self.object:remove()
-			end
-			if p_collide_with_entities then
-				local objs = minetest.get_objects_inside_radius({x=pos.x, y=pos.y, z=pos.z}, 1)
-				for k, obj in pairs(objs) do
-					if obj:get_luaentity().name ~= "spelltest:" .. p_name and obj:get_luaentity().name ~= "__builtin:item" then
-						p_parameters.self = self.object
-						p_on_collision(prev_pos, curr_pos, p_parameters)
-					end
-				end
+				self.object:remove()
 			end
 			prev_pos = {x=pos.x, y = pos.y, z = pos.z}
 		end
@@ -69,6 +63,9 @@ function spell_effect_pillar(itemstack, user, pointed_thing, p_parameters, uses,
 	local height = p_parameters.height
 	local block = p_parameters.block
 	local pos = minetest.get_pointed_thing_position(pointed_thing, true)
+	if not pos then
+		return itemstack
+	end
 	for i=1, height do
 		minetest.set_node(pos, {name = block})
 		pos.y = pos.y + 1
@@ -203,39 +200,42 @@ register_spell("spell_day", "Day", "spelltest_spell_white.png", {value = 0.4}, s
 register_spell("spell_water", "Water", "spelltest_spell_blue.png", {block = "default:water_source"}, spell_effect_place_block, 10)
 register_spell("spell_flood", "Flood", "spelltest_spell_blue.png", {block = "default:river_water_source", length = 5 }, spell_effect_place_row, 5)
 register_spell("spell_wall_stone", "Stonewall", "spelltest_spell_red.png", {block = "default:stone", height = 3, width = 7}, spell_effect_place_wall, 4)
-register_spell("spell_wall_of_china", "Wall of China", "spelltest_spell_red.png", {block = "default:stone", height = 7, width = 70}, spell_effect_place_wall, 1)
+
+local possible_materials = {
+	"default:dirt", "default:stone", "default:cobble", "default:desert_stone", "default:obsidian", "default:permafrost", "default:sand", "default:gravel", "default:tree",
+	"default:wood", "default:leaves", "default:stone_with_coal", "default:stone_with_iron", "default:stone_with_copper", "default:stone_with_tin", "default:stone_with_gold",
+	"default:stone_with_mese", "default:stone_with_diamond", "default:cactus", "default:water_source", "default:lava_source", "default:glass", "default:brick"
+}
+
+local spell_effects = {
+	"spell_effect_pillar", "spell_effect_heal", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_place_wall"
+}
 
 -- (name, description, image, uses, texture, velocity, duration, on_collision_parameter_list, on_collision)
 register_projectile_spell("spell_light", "Light", "spelltest_spell_white.png", 5,
 						  "spelltest_light.png", 0.3, 2, {block = "spelltest:light"}, function(prev_pos, pos, parameter)
 		minetest.set_node(prev_pos, {name = parameter.block})
-		parameter.self:remove()
 	end)
 
 register_projectile_spell("spell_waterball", "Waterball", "spelltest_spell_blue.png", 5,
 						  "spelltest_light.png", 0.5, 2, {block = "default:water_source"}, function(prev_pos, pos, parameter)
 		minetest.set_node(prev_pos, {name = parameter.block})
-		parameter.self:remove()
 	end)
 	
 register_projectile_spell("spell_fireball", "Fireball", "spelltest_spell_red.png", 5,
 						  "spelltest_light.png", 0.5, 2, {}, function(prev_pos, pos, parameter)
-		pos = parameter.self:getpos()
-		local objs = minetest.get_objects_inside_radius({x=pos.x, y=pos.y, z=pos.z},2)
+		local objs = minetest.get_objects_inside_radius({x=prev_pos.x, y=prev_pos.y, z=prev_pos.z},2)
 		for k, obj in pairs(objs) do
 			if obj:get_luaentity() ~= nil then
 				if obj:get_luaentity().name ~= "spelltest:spell_fireball" and obj:get_luaentity().name ~= "__builtin:item" then
 					obj:punch(parameter.self, 1.0, {
 						full_punch_interval=1.0,
-						damage_groups={fleshy=8},
+						damage_groups={fleshy=3},
 					}, nil)
 				end
 			end
 		end
-		parameter.self:remove()
 	end)
-
-
 
 minetest.register_node("spelltest:light",{
 	drawtype = "plantlike",
@@ -247,6 +247,98 @@ minetest.register_node("spelltest:light",{
 	groups = {dig_immediate = 2}
 })
 
+--[[
+	HOW TO: Create a custom spell
+	- create a new itemstack from spelltest:spell_custom and do the basic stuff - count, description ...
+	- set the following meta datas for the itemstack:
+		* STRING spell_description - Usually equals description, is used to change the name with uses left
+		* INT	 spell_uses		   - Defines how often the spell may be used before it's destroyed
+		* TABLE spell			   - Table with the wanted spell effect and parameters
+			-> STRING spell.spell_effect	- One of the given spell effect functions above. E.g "spell_effect_pillar", "spell_effect_place_row", "spell_effect_place_wall"
+			-> TABLE  spell.parameters		- Stores all the parameters that are used for the given effect. All currently used parameters are: length, height, width, duration, value, block
+	- You're done.
+--]]
+minetest.register_craftitem("spelltest:spell_custom",{
+	description = "Undefined Spell",
+	inventory_image = "spelltest_spell_white.png",
+	stack_max = 1,
+	on_use = function(itemstack, user, pointed_thing)
+		local meta = itemstack:get_meta()
+		if not meta then
+			minetest.chat_send_player(user:get_player_name(), "Could not load meta for spell")
+			return itemstack
+		end
+		
+		local spell_string 		= meta:get_string("spell") -- consists of: spell_effect, parameters {length, height, width, duration, value, block}
+		local spell_description = meta:get_string("spell_description")
+		local uses 				= meta:get_int("spell_uses")
+		local spell 			= nil
+		
+		if not spell_string then
+			minetest.chat_send_player(user:get_player_name(), "Spell not defined yet")
+			return itemstack
+		else 
+			spell = str_to_table(spell_string)
+		end
+		
+		if not spell then
+			minetest.chat_send_player(user:get_player_name(), "Spell metadata faulty, look into debug.log for details")
+			minetest.log("spelltest:ERROR - Faulty metadata: " .. spell_string)
+			return itemstack
+		end
+		minetest.log(spell_string)
+		
+		itemstack:set_wear(itemstack:get_wear() + 65535 / (uses - 1))
+		
+		call = cust_load_string(spell.spell_effect .. "(arg.i, arg.u, arg.p, arg.s.parameters, arg.us, arg.d)")
+		call({i = itemstack, u = user, p = pointed_thing, s = spell, us = uses, d = spell_description})
+
+		meta:set_string("description", meta:get_string("spell_description") .. " | " .. tostring(round(((65535 - itemstack:get_wear()) / 65535) * uses + 1)) .. " uses")
+		return itemstack
+	end
+})
+
+minetest.register_craftitem("spelltest:spell_random",{
+	description = "Random",
+	inventory_image = "spelltest_spell_white.png",
+	stack_max = 1,
+	on_use = function(itemstack, user, pointed_thing)
+		local inv = user:get_inventory()
+		local spellstack = {
+			name="spelltest:spell_custom",
+			count = 1,
+		}
+		spellstack = ItemStack(spellstack)
+		
+		local spell = {
+			spell_effect = spell_effects[math.random(#spell_effects)],
+			parameters = {
+				length = math.random(1, 10),
+				height = math.random(1, 10),
+				width = math.random(1,10),
+				duration = math.random(1,10),
+				value = math.random(1,10),
+				block = possible_materials[math.random(#possible_materials)]
+			}
+		}
+		local spell_as_string = table_to_str(spell)
+		local meta = spellstack:get_meta()
+		meta:set_string("description", spell.spell_effect .. "|" .. minetest.registered_items[spell.parameters.block].description)
+		meta:set_string("spell_description", spell.spell_effect .. "|" .. minetest.registered_items[spell.parameters.block].description)
+		meta:set_int("spell_uses", 10)
+		meta:set_string("spell", spell_as_string)
+		inv:add_item("main", spellstack)
+	end
+})
+
+function cust_load_string(str, name)
+	local f, err = loadstring("return function(arg) " .. str .. " end", name or str)
+	if f then 
+		return f()
+	else
+		return f, err
+	end
+end
 
 function round(n)
 	return n % 1 >= 0.5 and math.ceil(n) or math.floor(n)
@@ -260,4 +352,49 @@ function sign(n)
 	else
 		return 0
 	end
+end
+
+function str_to_table(s)
+	if not (s) or s == "nil" then
+		return
+	end
+	return loadstring("return "..s)()
+end
+
+-- functions to serialize tables http://lua-users.org/wiki/TableUtils
+
+function val_to_str ( v )
+  if "string" == type( v ) then
+    v = string.gsub( v, "\n", "\\n" )
+    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+      return "'" .. v .. "'"
+    end
+    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+  else
+    return "table" == type( v ) and table_to_str( v ) or
+      tostring( v )
+  end
+end
+
+function key_to_str ( k )
+  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
+    return k
+  else
+    return "[" .. val_to_str( k ) .. "]"
+  end
+end
+
+function table_to_str( tbl )
+  local result, done = {}, {}
+  for k, v in ipairs( tbl ) do
+    table.insert( result, val_to_str( v ) )
+    done[ k ] = true
+  end
+  for k, v in pairs( tbl ) do
+    if not done[ k ] then
+      table.insert( result,
+        key_to_str( k ) .. "=" .. val_to_str( v ) )
+    end
+  end
+  return "{" .. table.concat( result, "," ) .. "}"
 end

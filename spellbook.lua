@@ -1,23 +1,3 @@
--- API Documentation --
-
---[[
-Every Player has the "recipes" attribute where a recipe table is stored as a string. You can
-convert it back to a table by using the minetest.serialize function and convert it back into a
-string using the minetest.deserialize function
-
-The following Commands are added by this mod:
-- /add_recipe <player> <item_created> <amount> <item_cost>
-- /reset_recipes <player>
-
-These are the main functions:
-- add_recipe_to_player(player, item_created, amount, item_cost)
-- minetest.serialize(recipe)
-- minetest.deserialize(str)
-
-The following items are added by this mod:
-- spelltest:spellbook
---]]
-
 -- Configuration parameters --
 
 --[[Defines the recipes a player starts with, the first
@@ -27,11 +7,6 @@ default_recipes = {
 	{"spelltest:spell_light",5,"default:torch"},
 	{"spelltest:spell_heal_weak",3,"default:apple"}
 }
-
-local item_mapping = {}
-for key, val in pairs(minetest.registered_items) do
-    table.insert(item_mapping, key)
-end
 
 function add_recipe_to_player(player, item_created, amount, item_cost)
 	if not player then

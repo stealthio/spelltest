@@ -79,7 +79,6 @@ minetest.register_node("spelltest:researcher",{
 		inv:set_size('src', 1)
 		inv:set_size('wisdom', 1)
 		inv:set_size('dst', 1)
-		
 	end,
 	
 	on_metadata_inventory_move = function(pos)
