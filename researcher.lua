@@ -142,7 +142,7 @@ for k,v in pairs(value_map_craftitems) do value_map[k] = v end
 for k,v in pairs(value_map_tools) do value_map[k] = v end
 
 local special_map = {
-	{special = "building", effects = {"spell_effect_pillar","spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_block","spell_effect_place_block", "spell_effect_place_row"}},
+	{special = "building", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
 	{special = "fire", effects = {"spell_effect_place_block"}},
 	{special = "plant", effects = {"spell_effect_heal"}},
 	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row"}},
@@ -400,14 +400,14 @@ minetest.register_node("spelltest:researcher",{
 			mods.sum = sum
 			mods.specials = get_specials_from_table(mods)
 			
-			-- kevinistische rechnung
+			-- Danke Kevin
 			local max_single_block_value = 60
 			local max_length = 50
 			local max_width = 50
 			local max_height = 50
 			local max_uses = 50
 			local max_duration = 120
-			local max_value = 20
+			local max_value = 100
 			local max_ph1 = 100
 			local max_ph2 = 100
 			
@@ -433,7 +433,16 @@ minetest.register_node("spelltest:researcher",{
 			local luses = math.ceil((mods.uses_mod.value / max_single_block_value) * factor_uses * max_uses)
 			local lph1 = (mods.req_item_mod.value / max_single_block_value) * factor_ph1 * max_ph1
 			local lph2 = (mods.req_item_cnt_mod.value / max_single_block_value) * factor_ph2 * max_ph2
-			--
+			
+			-- fix parameters in case of certain effects
+			if effect == "spell_effect_set_time" then -- limited to value 0 - 1
+				lvalue = lvalue / 100
+				if lvalue < 0 or lvalue > 1 then
+					lvalue = 0
+				end
+			elseif effect == "spell_effect_low_gravity" then -- should be lower the higher the value
+				lvalue = (max_single_block_value - lvalue) / max_single_block_value
+			end
 			
 			local spellstack = {
 				name = "spelltest:spell_custom",

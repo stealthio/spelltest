@@ -5,11 +5,13 @@ A spell-crafting system for MineTest
 ![SpellTest](screenshots/screenshot.png)
 
 ## Description
-This is a magic mod that allows the user to create their own spells using a new crafting mechanic which encourages curiousity and creativity.
+This is a magic mod that allows the user to create their own spells using a new crafting mechanic which encourages curiosity and creativity.
 Each spell consists of several different attributes that are controlled by the 6 spell ingredients. Most default items in Minetest are supported as spell ingredients and
-you can even add your own with just a single line. Each ingredient has different attributes that are taken into consideration for the spell and once you're set all the ingredients you may chose
-how you want the spell to behave. Do you want to heal? Stomp a huge wall from the ground? Or maybe some utility by changing your gravity or manipulating the day time? Those and several other options
-are so far available for the spell behaviour with even more to come. 
+you can even add your own with just a single line. Each ingredient has different attributes that are taken into consideration for the spell and once you've set all the ingredients you may chose
+how you want the spell to behave. Do you want to heal? Summon a huge wall from the ground? Or maybe some utility by changing your gravity or manipulating the time? Those and several other options
+are so far available for the spell behaviour with even more to come.
+
+Important, the spell crafting feature is WIP! It's nowhere close to be balanced and bug free.
 
 There are also a few hardcoded spells which can partially recreated with the dynamic spell system, those are
 * "spell_dirt_pillar"
@@ -26,10 +28,11 @@ There are also a few hardcoded spells which can partially recreated with the dyn
 * "spell_flood"
 * "spell_wall_stone"
 
-There is also a WIP spell book used for storing crafted spells and recreating them without needing the research table but it's not yet properly implemented.
-The recipes in the spell book are stored per player so you could use it on a multiplayer server and each player have their own spell books.
+There is also a WIP spellbook used for storing crafted spells and recreating them without needing the research table but it's not yet properly implemented.
+The recipes in the spellbook are stored per player so you could use it on a multiplayer server and each player have their own spellbooks.
 
 # Getting started
+The first thing you have to do to create your own spells is crafting a researcher. The researcher is a crafting table for spells.
 To get started creating and using spells you first have to create a researcher, this will be the crafting table for all your future spells.
 
 ## Researcher
@@ -38,34 +41,38 @@ To get started creating and using spells you first have to create a researcher, 
 The recipe is:
 
 BDB
+
 BBB
+
 XXX
 
 B -> Bookshelf
+
 D -> Diamond
+
 X -> None
 
 Just place the researcher down and right-click it to open up its interface.
 
 ![Researcher Crafting](screenshots/researcher_interface_empty_labeled.png)
 
-1 - 6 : Here you can put in your ingredients for your spell. The better the ingredient (better -> rare, shiny, special), the better might be the outcome. It's also important where you put your ingredient in, each
-of the slots is for a different aspect of the spell.
-Once you've filled all the slots a list will appear where you have to define the spell behaviour.
+1 - 6 : Here you can put in your ingredients for your spell. The better the ingredient (better -> rare, shiny, special), the better the outcome might be. It's also important where you put your ingredient in, each
+of the slots is affecting a different aspect of the spell.
+Once you've filled all slots, a list will appear in which you have to define the spell behaviour.
 
 7 : This slot needs to be filled with a sheet of paper.
 
-8 : Once you're filled all the slots and selected a spell effect from the popup - list, you may create your spell. If you did everything accordingly the ingredients are consumed and the paper is transformed into your
+8 : Once you've filled all the slots and selected a spell effect from the popup-list, you may create your spell. If you did everything correctly, the ingredients are consumed and the paper is transformed into your
 new spell!
 
-9 : You might want to give your spells different names as they become hard to manage otherwise
+9 : You might want to give your spells different names, as they become hard to manage otherwise
 
 ![Researcher Crafting](screenshots/researcher_interface_filled.png)
 ![Researcher Crafting](screenshots/researcher_interface_result.png)
 
 ## Spells
 
-Now that you have crafted your first spell you can try it out by left-clicking a nearby block and see what happens.
+Now that you have crafted your first spell, you can try it out by left-clicking a nearby block and watch what happens.
 Heres what happens with our dirt - wall spell:
 ![Researcher Crafting](screenshots/researcher_interface_result_ingame.png)
 
@@ -75,7 +82,7 @@ Well that's rather disappointing. So how about if we use diamond-blocks only ins
 
 Now that's what I'm talking about! Free mese lamps \ o /
 
-Pick different ingredients, mix em up, put them in different slots and try out what happens. It's all dynamically and the results can be unexpected but fun!
+Pick different ingredients, mix them up, put them in different slots and watch what happens. It's all dynamic and the results can be unexpected but fun!
 
 # What's added
 

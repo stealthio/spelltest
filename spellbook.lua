@@ -1,5 +1,3 @@
--- Configuration parameters --
-
 --[[Defines the recipes a player starts with, the first
 element declares which item is being created and
 the second + third define which item and how many of it are required--]]
