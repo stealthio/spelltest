@@ -142,15 +142,15 @@ for k,v in pairs(value_map_craftitems) do value_map[k] = v end
 for k,v in pairs(value_map_tools) do value_map[k] = v end
 
 local special_map = {
-	{special = "building", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
-	{special = "fire", effects = {"spell_effect_place_block"}},
-	{special = "plant", effects = {"spell_effect_heal"}},
-	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row"}},
-	{special = "diamond", effects = {"spell_effect_low_gravity"}},
+	{special = "building", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
+	{special = "fire", effects = {"spell_effect_place_block","spell_effect_dig_block"}},
+	{special = "plant", effects = {"spell_effect_heal", "spell_effect_dig_block"}},
+	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row", "spell_effect_dig_block", "spell_effect_tunnel"}},
+	{special = "diamond", effects = {"spell_effect_low_gravity" , "spell_effect_tunnel"}},
 	{special = "mese", effects = {"spell_effect_low_gravity"}},
 	{special = "light", effects = {"spell_effect_heal", "spell_effect_set_time"}},
 	{special = "ice", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
-	{special = "tool", effects = {"spell_effect_pillar","spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_block","spell_effect_place_block", "spell_effect_place_row"}}
+	{special = "tool", effects = {"spell_effect_tunnel","spell_effect_pillar","spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_block","spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}}
 }
 
 local function allow_metadata_inventory_put(pos, listname, index, stack, player)
@@ -400,7 +400,7 @@ minetest.register_node("spelltest:researcher",{
 			mods.sum = sum
 			mods.specials = get_specials_from_table(mods)
 			
-			-- Danke Kevin
+			-- Thanks @kevin.fiegenbaum [https://gitlab.com/kevin.fiegenbaum] for helping with various calculations!
 			local max_single_block_value = 60
 			local max_length = 50
 			local max_width = 50

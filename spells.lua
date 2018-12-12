@@ -149,6 +149,49 @@ function spell_effect_place_row(itemstack, user, pointed_thing, p_parameters, us
 	
 end
 
+-- parameters: length, value
+function spell_effect_tunnel(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos1 = pointed_thing.above
+	if not pos1 then
+		return itemstack
+	end
+	local pos2 = pointed_thing.under
+	local x_mod = pos1.x - pos2.x
+	local y_mod = pos1.y - pos2.y
+	local z_mod = pos1.z - pos2.z
+	local pointer = {x = pos2.x, y = pos2.y, z = pos2.z}
+	local inv = user:get_inventory()
+	local length = p_parameters.length
+	local value = p_parameters.value
+	
+	for i=1, length do
+		local node = minetest.get_node(pointer).name
+		if node ~= "air" then
+			inv:add_item("main", node .. " " .. math.floor(value / 40))
+		end
+		minetest.set_node(pointer, {name = "air"})
+		pointer.x = pointer.x - x_mod
+		pointer.y = pointer.y - y_mod
+		pointer.z = pointer.z - z_mod
+	end
+	return itemstack
+end
+
+-- parameters: value
+function spell_effect_dig_block(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos = pointed_thing.under
+	if not pos then
+		return itemstack
+	end
+	local value = p_parameters.value
+	
+	local node = minetest.get_node(pos).name
+	local inv = user:get_inventory()
+	inv:add_item("main", node .. " " .. math.floor(value / 15))
+	minetest.set_node(pos, {name = "air"})
+	return itemstack
+end
+
 -- parameters: height, width, block
 function spell_effect_place_wall(itemstack, user, pointed_thing, p_parameters, uses, description)
 	local height = p_parameters.height
