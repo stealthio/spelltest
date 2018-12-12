@@ -66,11 +66,11 @@ minetest.register_craftitem("spelltest:spellbook", {
 	wield_image = "spelltest_spellbook_open.png",
 	on_use = function(itemstack, user, pointed_thing)
 		local recipes = user:get_attribute("recipes")
-		recipes = minetest.deserialize(recipes)--(loadstring)("return "..recipes)()
+		recipes = minetest.deserialize(recipes)
 		if not (recipes) then
 			return
 		end
-		local txl = "textlist[2,3;5,3;spells;" -- minetest.registered_items[item1].description
+		local txl = "textlist[2,3;5,3;spells;"
 		for i = 1, table.getn(recipes) do
 			txl = txl .. "#000000" .. minetest.registered_items[recipes[i][1]].description .. " - Costs: " .. recipes[i][2] .. "x " .. minetest.registered_items[recipes[i][3]].description .. ","
 		end
