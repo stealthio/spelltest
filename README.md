@@ -34,7 +34,7 @@ To get started creating and using spells you first have to create a researcher, 
 
 ## Researcher
 
-![Researcher Crafting](screenshots/researcher_craft.png)
+![Researcher Crafting](screenshots/researcher_craft.PNG)
 The recipe is:
 
 BDB
