@@ -160,13 +160,18 @@ local function allow_metadata_inventory_put(pos, listname, index, stack, player)
 	local meta = minetest.get_meta(pos)
 	local inv = meta:get_inventory()
 	if listname == "paper" then
-		if (stack:get_name() == "default:paper") then
+		if (stack:get_name() == "default:paper") and not inv:contains_item(listname, "default:paper") then
 			return 1
 		else
 			return 0
 		end
 	end
-	return 1
+	if not inv:contains_item(listname, stack:get_name()) then
+		return 1
+	else
+		return 0
+	end
+	
 end
 
 local function pick_lesser_block(origin_block_name)
@@ -471,6 +476,7 @@ minetest.register_node("spelltest:researcher",{
 			meta:set_int("spell_uses", luses)
 			meta:set_string("spell", spell_as_string)
 			inv:set_stack("paper", 1, spellstack)
+			
 			inv:set_stack('size', 1, nil)
 			inv:set_stack('block', 1, nil)
 			inv:set_stack('req_item', 1, nil)
