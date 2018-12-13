@@ -57,10 +57,19 @@ function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parame
 end
 
 --- SPELL EFFECTS ---
+-- parameters: str(schematic)
+function spell_effect_spawn_house(itemstack, user, pointed_thing, p_parameters, uses, description)
+	if not pointed_thing.above then
+		return itemstack
+	end
+	local path = minetest.get_modpath("spelltest") .. "/schematics/".. p_parameters.str .. ".mts"
+	minetest.place_schematic(pointed_thing.above, path, "random", {["wool:red"] = "default:wood", ["wool:green"] = "default:tree"}, true)
+	return itemstack
+end
 
 -- parameters: height, block
 function spell_effect_pillar(itemstack, user, pointed_thing, p_parameters, uses, description)
-	local height = p_parameters.height
+	local height = math.ceil(p_parameters.height * (p_parameters.value / 50))
 	local block = p_parameters.block
 	local pos = minetest.get_pointed_thing_position(pointed_thing, true)
 	if not pos then
@@ -122,7 +131,7 @@ end
 
 -- parameters: length, block
 function spell_effect_place_row(itemstack, user, pointed_thing, p_parameters, uses, description)
-	local length = p_parameters.length
+	local length = math.ceil(p_parameters.length * (p_parameters.value / 50))
 	local block = p_parameters.block
 	
 	local pos = minetest.get_pointed_thing_position(pointed_thing, true)
@@ -160,20 +169,110 @@ function spell_effect_tunnel(itemstack, user, pointed_thing, p_parameters, uses,
 	local y_mod = pos1.y - pos2.y
 	local z_mod = pos1.z - pos2.z
 	local pointer = {x = pos2.x, y = pos2.y, z = pos2.z}
-	local inv = user:get_inventory()
 	local length = p_parameters.length
-	local value = p_parameters.value
 	
 	for i=1, length do
-		local node = minetest.get_node(pointer).name
-		if node ~= "air" then
-			inv:add_item("main", node .. " " .. math.floor(value / 40))
-		end
-		minetest.set_node(pointer, {name = "air"})
+		minetest.dig_node(pointer)
 		pointer.x = pointer.x - x_mod
 		pointer.y = pointer.y - y_mod
 		pointer.z = pointer.z - z_mod
 	end
+	return itemstack
+end
+
+function spell_effect_waypoint_teleport(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local control = user:get_player_control()
+	local meta = itemstack:get_meta()
+	if control.sneak then
+		local waypoint_string = minetest.serialize({x = user:get_pos().x,y = user:get_pos().y,z = user:get_pos().z})
+		meta:set_string("waypoint", waypoint_string)
+		minetest.chat_send_player(user:get_player_name(), "Waypoint set to: " .. waypoint_string)
+		return itemstack
+	else
+		local waypoint_string = meta:get_string("waypoint")
+		local waypoint = nil
+		if waypoint_string then
+			waypoint = minetest.deserialize(waypoint_string)
+		else
+			minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+			return itemstack
+		end
+		if waypoint then
+			user:set_pos(waypoint)
+		else
+			minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+		end
+	end
+	return itemstack
+end
+
+-- parameters: block, width, height, length, value
+function spell_effect_excavate(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos1 = pointed_thing.above
+	if not pos1 then
+		return itemstack
+	end
+	local node = nil
+	local pos2 = pointed_thing.under
+	local x_mod = pos1.x - pos2.x
+	local y_mod = pos1.y - pos2.y
+	local z_mod = pos1.z - pos2.z
+	local pointer = {x = pos2.x, y = pos2.y, z = pos2.z}
+	local length = math.ceil(p_parameters.length * (p_parameters.value / 150))
+	local width = math.ceil(p_parameters.width * (p_parameters.value / 150));
+	local height = math.ceil(p_parameters.height * (p_parameters.value / 150));
+
+	minetest.chat_send_player(user:get_player_name(), "y_mod:" .. y_mod .. " | x_mod:" ..x_mod .. " | z_mod: " .. z_mod)
+
+	height = height / 2
+	width = width / 2
+
+	for h = -height, height do
+		for w = -width, width do
+			if y_mod == 0 then
+				pointer = {
+					x = pos2.x + w * z_mod,
+					y = pos2.y + h,
+					z = pos2.z + w * x_mod
+				}
+			else
+				pointer = {
+					x = pos2.x + h,
+					y = pos2.y,
+					z = pos2.z + w
+				}
+			end
+			for l = 1, length do
+				node = minetest.get_node(pointer)
+				if node then
+					minetest.dig_node(pointer)
+				end
+				pointer.x = pointer.x - x_mod
+				pointer.y = pointer.y - y_mod
+				pointer.z = pointer.z - z_mod
+			end
+		end
+	end
+	return itemstack
+end
+
+-- parameters: block, value
+function spell_effect_tree(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local treedef = {
+		axiom="FFFFFAFFBF",
+		rules_a="[&&&FFFFF&&FFFF][&&&++++FFFFF&&FFFF][&&&----FFFFF&&FFFF]",
+		rules_b="[&&&++FFFFF&&FFFF][&&&--FFFFF&&FFFF][&&&------FFFFF&&FFFF]",
+		trunk="default:tree",
+		leaves="default:leaves",
+		angle=math.random(0,math.ceil(p_parameters.value/2)),
+		iterations=math.ceil(p_parameters.value/10),
+		random_level=0,
+		trunk_type="single",
+		thin_branches=true,
+		fruit_chance=math.ceil(p_parameters.value/10),
+		fruit=p_parameters.block
+	}
+	minetest.spawn_tree(pointed_thing.above, treedef)
 	return itemstack
 end
 
@@ -194,7 +293,7 @@ end
 
 -- parameters: height, width, block
 function spell_effect_place_wall(itemstack, user, pointed_thing, p_parameters, uses, description)
-	local height = p_parameters.height
+	local height = math.ceil(p_parameters.height * (p_parameters.value / 200))
 	local width = p_parameters.width
 	local block = p_parameters.block
 

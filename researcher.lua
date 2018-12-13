@@ -40,25 +40,25 @@ local value_map_nodes = {
 	["default:snowblock"] = { value = 3, special = {"ice"}},
 	["default:ice"] = { value = 5, special = {"ice"}},
 	["default:cave_ice"] = { value = 5, special = {"ice"}},
-	["default:tree"] = { value = 5, special = {"building"}},
-	["default:wood"] = { value = 3, special = {"building"}},
+	["default:tree"] = { value = 5, special = {"building","plant"}},
+	["default:wood"] = { value = 3, special = {"building","plant"}},
 	["default:leaves"] = { value = 2, special = {"plant"}},
 	["default:sapling"] = { value = 1, special = {"plant"}},
 	["default:apple"] = { value = 2, special = {"plant"}},
-	["default:jungletree"] = { value = 5, special = {"building"}},
-	["default:junglewood"] = { value = 3, special = {"building"}},
+	["default:jungletree"] = { value = 5, special = {"building","plant"}},
+	["default:junglewood"] = { value = 3, special = {"building","plant"}},
 	["default:jungleleaves"] = { value = 2, special = {"plant"}},
 	["default:junglesapling"] = { value = 1, special = {"plant"}},
-	["default:pine_tree"] = { value = 5, special = {"building"}},
-	["default:pine_wood"] = { value = 3, special = {"building"}},
+	["default:pine_tree"] = { value = 5, special = {"building","plant"}},
+	["default:pine_wood"] = { value = 3, special = {"building","plant"}},
 	["default:pine_needles"] = { value = 2, special = {"plant"}},
 	["default:pine_sapling"] = { value = 1, special = {"plant"}},
-	["default:acacia_tree"] = { value = 5, special = {"building"}},
-	["default:acacia_wood"] = { value = 3, special = {"building"}},
+	["default:acacia_tree"] = { value = 5, special = {"building","plant"}},
+	["default:acacia_wood"] = { value = 3, special = {"building","plant"}},
 	["default:acacia_leaves"] = { value = 2, special = {"plant"}},
 	["default:acacia_sapling"] = { value = 1, special = {"plant"}},
-	["default:aspen_tree"] = { value = 5, special = {"building"}},
-	["default:aspen_wood"] = { value = 3, special = {"building"}},
+	["default:aspen_tree"] = { value = 5, special = {"building","plant"}},
+	["default:aspen_wood"] = { value = 3, special = {"building","plant"}},
 	["default:aspen_leaves"] = { value = 2, special = {"plant"}},
 	["default:aspen_sapling"] = { value = 1, special = {"plant"}},
 	["default:coalblock"] = { value = 30, special = {"fire"}},
@@ -142,15 +142,31 @@ for k,v in pairs(value_map_craftitems) do value_map[k] = v end
 for k,v in pairs(value_map_tools) do value_map[k] = v end
 
 local special_map = {
-	{special = "building", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
+	{special = "building", effects = {"spell_effect_spawn_house", "spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
 	{special = "fire", effects = {"spell_effect_place_block","spell_effect_dig_block"}},
-	{special = "plant", effects = {"spell_effect_heal", "spell_effect_dig_block"}},
+	{special = "plant", effects = {"spell_effect_heal", "spell_effect_dig_block", "spell_effect_tree"}},
 	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row", "spell_effect_dig_block", "spell_effect_tunnel"}},
-	{special = "diamond", effects = {"spell_effect_low_gravity" , "spell_effect_tunnel"}},
-	{special = "mese", effects = {"spell_effect_low_gravity"}},
+	{special = "diamond", effects = {"spell_effect_spawn_house","spell_effect_waypoint_teleport", "spell_effect_excavate","spell_effect_tree","spell_effect_low_gravity" , "spell_effect_tunnel", "spell_effect_place_wall"}},
+	{special = "mese", effects = {"spell_effect_waypoint_teleport","spell_effect_low_gravity", "spell_effect_excavate", "spell_effect_set_time"}},
 	{special = "light", effects = {"spell_effect_heal", "spell_effect_set_time"}},
 	{special = "ice", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
-	{special = "tool", effects = {"spell_effect_tunnel","spell_effect_pillar","spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_block","spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}}
+	{special = "tool", effects = {"spell_effect_excavate","spell_effect_tunnel","spell_effect_pillar","spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}}
+}
+
+local effect_display_name_map = {
+	["spell_effect_pillar"] = "Summon Pillar",
+	["spell_effect_place_wall"] = "Summon Wall",
+	["spell_effect_place_block"] = "Place Block",
+	["spell_effect_place_row"] = "Row",
+	["spell_effect_dig_block"] = "Dig",
+	["spell_effect_heal"] = "Heal",
+	["spell_effect_tree"] = "Grow Tree",
+	["spell_effect_tunnel"] = "Dig Tunnel",
+	["spell_effect_excavate"] = "Excavate",
+	["spell_effect_waypoint_teleport"] = "Teleportation (Waypoint)",
+	["spell_effect_low_gravity"] = "Manipulate Gravity",
+	["spell_effect_set_time"] = "Manipulate Daytime",
+	["spell_effect_spawn_house"] = "Summon House"
 }
 
 local function allow_metadata_inventory_put(pos, listname, index, stack, player)
@@ -276,11 +292,10 @@ local function get_specials_from_table(t)
 	return specials
 end
 
-
 local function pick_special(specials)
 	while true do
 		for i=1,#specials do
-			if math.random(0,10) <= specials[i].value then
+			if math.random(1,6) <= specials[i].value then
 				for j = 1,#special_map do
 					if special_map[j].special == specials[i].special then
 						do return special_map[j].effects[math.random(#special_map[j].effects)] end
@@ -310,7 +325,9 @@ local function refresh_list(pos, listname, index, stack, player)
 	local possible_effects = ""
 	local a = {}
 	for k in pairs(specials) do
-		possible_effects = possible_effects .. k .. ","
+		local display_name = effect_display_name_map[k]
+		if not display_name then display_name = k end
+		possible_effects = possible_effects .. display_name .. ","
 		table.insert(a, k)
 	end
 	meta:set_string("effect_choices", minetest.serialize(a))
@@ -438,6 +455,7 @@ minetest.register_node("spelltest:researcher",{
 			local luses = math.ceil((mods.uses_mod.value / max_single_block_value) * factor_uses * max_uses)
 			local lph1 = (mods.req_item_mod.value / max_single_block_value) * factor_ph1 * max_ph1
 			local lph2 = (mods.req_item_cnt_mod.value / max_single_block_value) * factor_ph2 * max_ph2
+			local lstr = ""
 			
 			-- fix parameters in case of certain effects
 			if effect == "spell_effect_set_time" then -- limited to value 0 - 1
@@ -449,6 +467,26 @@ minetest.register_node("spelltest:researcher",{
 				lvalue = (max_single_block_value - lvalue) / max_single_block_value
 			end
 			
+			local houses = {
+				["plain"] = {"House_Plain_1", "House_Plain_2"},
+				["simple"] = {"House_Simple"},
+				["advanced"] = {"House_Simple"},
+				["luxury"] = {"House_Simple"}
+			}
+			
+			if effect == "spell_effect_spawn_house" then
+				luses = math.ceil(luses / 3)
+				if lvalue < 10 then
+					lstr = houses["plain"][math.random(#houses["plain"])]
+				elseif lvalue < 30 then
+					lstr = houses["simple"][math.random(#houses["simple"])]
+				elseif lvalue < 70 then
+					lstr = houses["advanced"][math.random(#houses["advanced"])]
+				else
+					lstr = houses["luxury"][math.random(#houses["luxury"])]
+				end
+			end
+			-- --
 			local spellstack = {
 				name = "spelltest:spell_custom",
 				count = 1
@@ -462,7 +500,8 @@ minetest.register_node("spelltest:researcher",{
 					width = lwidth,
 					duration = lduration,
 					value = lvalue,
-					block = pick_lesser_block(item_block:get_name())
+					block = pick_lesser_block(item_block:get_name()),
+					str = lstr
 				}
 			}
 			local spell_as_string = table_to_str(spell)
