@@ -142,11 +142,11 @@ for k,v in pairs(value_map_craftitems) do value_map[k] = v end
 for k,v in pairs(value_map_tools) do value_map[k] = v end
 
 local special_map = {
-	{special = "building", effects = {"spell_effect_spawn_house", "spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
+	{special = "building", effects = {"spell_effect_make_sphere","spell_effect_spawn_house", "spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
 	{special = "fire", effects = {"spell_effect_place_block","spell_effect_dig_block"}},
 	{special = "plant", effects = {"spell_effect_heal", "spell_effect_dig_block", "spell_effect_tree"}},
 	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row", "spell_effect_dig_block", "spell_effect_tunnel"}},
-	{special = "diamond", effects = {"spell_effect_spawn_house","spell_effect_waypoint_teleport", "spell_effect_excavate","spell_effect_tree","spell_effect_low_gravity" , "spell_effect_tunnel", "spell_effect_place_wall"}},
+	{special = "diamond", effects = {"spell_effect_make_sphere","spell_effect_spawn_house","spell_effect_waypoint_teleport", "spell_effect_excavate","spell_effect_tree","spell_effect_low_gravity" , "spell_effect_tunnel", "spell_effect_place_wall"}},
 	{special = "mese", effects = {"spell_effect_waypoint_teleport","spell_effect_low_gravity", "spell_effect_excavate", "spell_effect_set_time"}},
 	{special = "light", effects = {"spell_effect_heal", "spell_effect_set_time"}},
 	{special = "ice", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
@@ -166,7 +166,8 @@ local effect_display_name_map = {
 	["spell_effect_waypoint_teleport"] = "Teleportation (Waypoint)",
 	["spell_effect_low_gravity"] = "Manipulate Gravity",
 	["spell_effect_set_time"] = "Manipulate Daytime",
-	["spell_effect_spawn_house"] = "Summon House"
+	["spell_effect_spawn_house"] = "Summon House",
+	["spell_effect_make_sphere"] = "Summon Sphere"
 }
 
 local function allow_metadata_inventory_put(pos, listname, index, stack, player)
@@ -469,9 +470,9 @@ minetest.register_node("spelltest:researcher",{
 			
 			local houses = {
 				["plain"] = {"House_Plain_1", "House_Plain_2"},
-				["simple"] = {"House_Simple"},
-				["advanced"] = {"House_Simple"},
-				["luxury"] = {"House_Simple"}
+				["simple"] = {"House_Simple_1", "House_Simple_2"},
+				["advanced"] = {"House_Advanced_1"},
+				["luxury"] = {"House_Advanced_1"}
 			}
 			
 			if effect == "spell_effect_spawn_house" then

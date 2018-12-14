@@ -59,11 +59,139 @@ end
 --- SPELL EFFECTS ---
 -- parameters: str(schematic)
 function spell_effect_spawn_house(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos = pointed_thing.above
+	if minetest.is_protected(pos, user:get_player_name()) then	
+		return itemstack
+	end
+	if minetest.is_protected({x = pos.x - 10, y = pos.y, z = pos.z - 10}, user:get_player_name()) then	
+		return itemstack
+	end
+	if minetest.is_protected({x = pos.x + 10, y = pos.y, z = pos.z + 10}, user:get_player_name()) then	
+		return itemstack
+	end
+	if minetest.is_protected({x = pos.x - 10, y = pos.y + 10, z = pos.z - 10}, user:get_player_name()) then	
+		return itemstack
+	end
+	if minetest.is_protected({x = pos.x + 10, y = pos.y + 10, z = pos.z + 10}, user:get_player_name()) then	
+		return itemstack
+	end
 	if not pointed_thing.above then
 		return itemstack
 	end
 	local path = minetest.get_modpath("spelltest") .. "/schematics/".. p_parameters.str .. ".mts"
-	minetest.place_schematic(pointed_thing.above, path, "random", {["wool:red"] = "default:wood", ["wool:green"] = "default:tree"}, true)
+	minetest.place_schematic({x= pos.x - 5, y = pos.y, z = pos.z - 5}, path, "random", {["wool:red"] = "default:wood", ["wool:green"] = "default:tree"}, true)
+	return itemstack
+end
+
+-- params: height, pointed_thing
+function spell_effect_make_sphere(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos1 = pointed_thing.above
+	if not pos1 then
+		return itemstack
+	end
+	local node = nil
+	local pos2 = pointed_thing.under
+	local x_mod = pos1.x - pos2.x
+	local y_mod = pos1.y - pos2.y
+	local z_mod = pos1.z - pos2.z
+
+	local block = p_parameters.block
+
+	p_parameters.height = math.floor(p_parameters.height / 4)
+
+	local radius = p_parameters.height
+	local x = -radius
+	local z = 0
+	local err = 2 - 2 * radius        -- II. Quadrant
+
+	local outer_radius = p_parameters.height
+	local outer_x = -outer_radius
+	local outer_y = 0
+	local outer_err = 2 - 2 * outer_radius
+
+
+	local central_pointer = {x = pos2.x , y = pos2.y, z = pos2.z }
+
+	repeat
+	  -- x_outer abs als höhe. Berechne den Radius über sin / cos
+		radius = math.floor(math.cos(math.asin(math.abs(outer_x) / p_parameters.height)) * p_parameters.height)
+		x = -radius
+		z = 0
+		err = 2 - 2 * radius        -- II. Quadrant
+		repeat
+		  --lower half
+			if not minetest.is_protected({x = central_pointer.x - x, y= central_pointer.y + outer_x, z = central_pointer.z + z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - x, y= central_pointer.y + outer_x, z = central_pointer.z + z}, {name = block}) -- I. Quadrantmath.abs(outer_y)
+			end
+			if not minetest.is_protected({x = central_pointer.x - outer_x, y= central_pointer.y + x, z = central_pointer.z + z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - outer_x, y= central_pointer.y + x, z = central_pointer.z + z}, {name = block}) -- I. Quadrantmath.abs(outer_y)
+			end
+			if not minetest.is_protected({x = central_pointer.x - z, y= central_pointer.y + outer_x, z = central_pointer.z - x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - z, y= central_pointer.y + outer_x, z = central_pointer.z - x}, {name = block}) -- II. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x - z, y= central_pointer.y + x, z = central_pointer.z - outer_x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - z, y= central_pointer.y + x, z = central_pointer.z - outer_x}, {name = block}) -- II. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + x, y= central_pointer.y + outer_x, z = central_pointer.z - z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + x, y= central_pointer.y + outer_x, z = central_pointer.z - z}, {name = block}) -- III. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + outer_x, y= central_pointer.y + x, z = central_pointer.z - z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + outer_x, y= central_pointer.y + x, z = central_pointer.z - z}, {name = block}) -- III. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + z, y= central_pointer.y + outer_x, z = central_pointer.z + x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + z, y= central_pointer.y + outer_x, z = central_pointer.z + x}, {name = block}) -- IV. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + z, y= central_pointer.y + outer_x, z = central_pointer.z + x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + z, y= central_pointer.y + outer_x, z = central_pointer.z + x}, {name = block}) -- IV. Quadrant
+			end
+
+			-- upper half
+			if not minetest.is_protected({x = central_pointer.x - x, y= central_pointer.y - outer_x, z = central_pointer.z + z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - x, y= central_pointer.y - outer_x, z = central_pointer.z + z}, {name = block}) -- I. Quadrantmath.abs(outer_y)
+			end
+			if not minetest.is_protected({x = central_pointer.x - outer_x, y= central_pointer.y - x, z = central_pointer.z + z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - outer_x, y= central_pointer.y - x, z = central_pointer.z + z}, {name = block}) -- I. Quadrantmath.abs(outer_y)
+			end
+			if not minetest.is_protected({x = central_pointer.x - z, y= central_pointer.y - outer_x, z = central_pointer.z - x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - z, y= central_pointer.y - outer_x, z = central_pointer.z - x}, {name = block}) -- II. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x - z, y= central_pointer.y - x, z = central_pointer.z - outer_x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x - z, y= central_pointer.y - x, z = central_pointer.z - outer_x}, {name = block}) -- II. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + x, y= central_pointer.y - outer_x, z = central_pointer.z - z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + x, y= central_pointer.y - outer_x, z = central_pointer.z - z}, {name = block}) -- III. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + outer_x, y= central_pointer.y - x, z = central_pointer.z - z}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + outer_x, y= central_pointer.y - x, z = central_pointer.z - z}, {name = block}) -- III. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + z, y= central_pointer.y - outer_x, z = central_pointer.z + x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + z, y= central_pointer.y - outer_x, z = central_pointer.z + x}, {name = block}) -- IV. Quadrant
+			end
+			if not minetest.is_protected({x = central_pointer.x + z, y= central_pointer.y - x, z = central_pointer.z + outer_x}, user:get_player_name()) then
+				minetest.set_node({x = central_pointer.x + z, y= central_pointer.y - x, z = central_pointer.z + outer_x}, {name = block}) -- IV. Quadrant
+			end
+
+			radius = err
+			if radius <= z then
+				z = z + 1
+				err = err + z * 2 + 1
+			end
+			if radius > x or err > z then
+				x = x + 1
+				err = err + x * 2+1
+			end
+		until (x >= 0)
+
+		if outer_radius <= z then
+			outer_y = outer_y + 1
+			outer_err = outer_err + outer_y * 2 + 1
+		end
+		if outer_radius > outer_x or outer_err > outer_y then
+			outer_x = outer_x + 1
+			outer_err = outer_err + outer_x * 2+1
+		end
+	until (outer_x > 0)
+
 	return itemstack
 end
 
@@ -76,7 +204,9 @@ function spell_effect_pillar(itemstack, user, pointed_thing, p_parameters, uses,
 		return itemstack
 	end
 	for i=1, height do
-		minetest.set_node(pos, {name = block})
+		if not minetest.is_protected(pos, user:get_player_name()) then
+			minetest.set_node(pos, {name = block})
+		end
 		pos.y = pos.y + 1
 	end
 	return itemstack
@@ -124,7 +254,9 @@ function spell_effect_place_block(itemstack, user, pointed_thing, p_parameters, 
 	if not pos then
 		return itemstack
 	end
-	minetest.set_node(pos, {name = p_parameters.block})
+	if not minetest.is_protected(pos, user:get_player_name()) then
+		minetest.set_node(pos, {name = p_parameters.block})
+	end
 	
 	return itemstack
 end
@@ -147,7 +279,10 @@ function spell_effect_place_row(itemstack, user, pointed_thing, p_parameters, us
 		dir = 0
 	end
 	for i=1, length do
-		minetest.set_node(pos, {name = block})
+		if not minetest.is_protected(pos, user:get_player_name()) then
+			minetest.set_node(pos, {name = block})
+		end
+		
 		if (dir == 0) then
 			pos.x = pos.x + 1
 		else
@@ -172,7 +307,7 @@ function spell_effect_tunnel(itemstack, user, pointed_thing, p_parameters, uses,
 	local length = p_parameters.length
 	
 	for i=1, length do
-		minetest.dig_node(pointer)
+		minetest.dig_node(pointer)--minetest.node_dig(pointer, minetest.get_node(pointer), user)
 		pointer.x = pointer.x - x_mod
 		pointer.y = pointer.y - y_mod
 		pointer.z = pointer.z - z_mod
@@ -286,8 +421,10 @@ function spell_effect_dig_block(itemstack, user, pointed_thing, p_parameters, us
 	
 	local node = minetest.get_node(pos).name
 	local inv = user:get_inventory()
-	inv:add_item("main", node .. " " .. math.floor(value / 15))
-	minetest.set_node(pos, {name = "air"})
+	if not minetest.is_protected(pos, user:get_player_name()) then
+		inv:add_item("main", node .. " " .. math.floor(value / 15))
+		minetest.set_node(pos, {name = "air"})
+	end
 	return itemstack
 end
 
@@ -315,7 +452,9 @@ function spell_effect_place_wall(itemstack, user, pointed_thing, p_parameters, u
 	
 	for j=1, width do
 		for i=1, height do
-			minetest.set_node({x = pos.x, y= pos.y + i - 1, z = pos.z}, {name = block})
+			if not minetest.is_protected({x = pos.x, y= pos.y + i - 1, z = pos.z}, user:get_player_name()) then
+				minetest.set_node({x = pos.x, y= pos.y + i - 1, z = pos.z}, {name = block})
+			end
 		end
 		if (dir == 0) then
 			pos.x = pos.x + 1
@@ -356,12 +495,16 @@ local spell_effects = {
 -- (name, description, image, uses, texture, velocity, duration, on_collision_parameter_list, on_collision)
 register_projectile_spell("spell_light", "Light", "spelltest_spell_white.png", 5,
 						  "spelltest_light.png", 0.3, 2, {block = "spelltest:light"}, function(prev_pos, pos, parameter)
-		minetest.set_node(prev_pos, {name = parameter.block})
+		if not minetest.is_protected(prev_pos, user:get_player_name()) then
+			minetest.set_node(prev_pos, {name = parameter.block})
+		end
 	end)
 
 register_projectile_spell("spell_waterball", "Waterball", "spelltest_spell_blue.png", 5,
 						  "spelltest_light.png", 0.5, 2, {block = "default:water_source"}, function(prev_pos, pos, parameter)
-		minetest.set_node(prev_pos, {name = parameter.block})
+		if not minetest.is_protected(prev_pos, user:get_player_name()) then
+			minetest.set_node(prev_pos, {name = parameter.block})
+		end
 	end)
 	
 register_projectile_spell("spell_fireball", "Fireball", "spelltest_spell_red.png", 5,
