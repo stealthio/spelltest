@@ -142,13 +142,13 @@ for k,v in pairs(value_map_craftitems) do value_map[k] = v end
 for k,v in pairs(value_map_tools) do value_map[k] = v end
 
 local special_map = {
-	{special = "building", effects = {"spell_effect_make_sphere","spell_effect_spawn_house", "spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
+	{special = "building", effects = {"spell_effect_make_cube","spell_effect_make_skyscraper","spell_effect_make_tent","spell_effect_make_pyramid","spell_effect_make_sphere","spell_effect_spawn_house", "spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}},
 	{special = "fire", effects = {"spell_effect_place_block","spell_effect_dig_block"}},
 	{special = "plant", effects = {"spell_effect_heal", "spell_effect_dig_block", "spell_effect_tree"}},
-	{special = "tough", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row", "spell_effect_dig_block", "spell_effect_tunnel"}},
-	{special = "diamond", effects = {"spell_effect_make_sphere","spell_effect_spawn_house","spell_effect_waypoint_teleport", "spell_effect_excavate","spell_effect_tree","spell_effect_low_gravity" , "spell_effect_tunnel", "spell_effect_place_wall"}},
+	{special = "tough", effects = {"spell_effect_make_cube","spell_effect_make_skyscraper","spell_effect_make_pyramid","spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_row", "spell_effect_dig_block", "spell_effect_tunnel"}},
+	{special = "diamond", effects = {"spell_effect_make_cube","spell_effect_make_skyscraper","spell_effect_make_tent","spell_effect_make_sphere","spell_effect_spawn_house","spell_effect_waypoint_teleport", "spell_effect_excavate","spell_effect_tree","spell_effect_low_gravity" , "spell_effect_tunnel", "spell_effect_place_wall"}},
 	{special = "mese", effects = {"spell_effect_waypoint_teleport","spell_effect_low_gravity", "spell_effect_excavate", "spell_effect_set_time"}},
-	{special = "light", effects = {"spell_effect_heal", "spell_effect_set_time"}},
+	{special = "light", effects = {"spell_effect_make_tent","spell_effect_heal", "spell_effect_set_time"}},
 	{special = "ice", effects = {"spell_effect_pillar", "spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row"}},
 	{special = "tool", effects = {"spell_effect_excavate","spell_effect_tunnel","spell_effect_pillar","spell_effect_place_wall", "spell_effect_place_block", "spell_effect_place_row", "spell_effect_dig_block"}}
 }
@@ -167,7 +167,11 @@ local effect_display_name_map = {
 	["spell_effect_low_gravity"] = "Manipulate Gravity",
 	["spell_effect_set_time"] = "Manipulate Daytime",
 	["spell_effect_spawn_house"] = "Summon House",
-	["spell_effect_make_sphere"] = "Summon Sphere"
+	["spell_effect_make_sphere"] = "Summon Sphere",
+	["spell_effect_make_pyramid"] = "Summon Pyramid",
+	["spell_effect_make_tent"] = "Create Tent",
+	["spell_effect_make_skyscraper"] = "Summon Skyscraper",
+	["spell_effect_make_cube"] = "Summon Cube"
 }
 
 local function allow_metadata_inventory_put(pos, listname, index, stack, player)
@@ -237,32 +241,14 @@ local function get_researcher_inventory(inv)
 	local item_uses = inv:get_stack("uses", 1)
 	local item_req_item_cnt = inv:get_stack("req_item_cnt", 1)
 	
-	local f = {
-		size_mod = {value = value_map[item_size:get_name()].value, special = value_map[item_size:get_name()].special},
-		block_mod = {value = value_map[item_block:get_name()].value, special = value_map[item_block:get_name()].special},
-		req_item_mod = {value = value_map[item_req_item:get_name()].value, special = value_map[item_req_item:get_name()].special},
-		value_mod = {value = value_map[item_value:get_name()].value, special = value_map[item_value:get_name()].special},
-		uses_mod = {value = value_map[item_uses:get_name()].value, special = value_map[item_uses:get_name()].special},
-		req_item_cnt_mod = {value = value_map[item_req_item_cnt:get_name()].value, special = value_map[item_req_item_cnt:get_name()].special}
-	}
-	if not f.size_mod then
-		f.size_mod = { value = 1, special = {}}
-	end
-	if not f.block_mod then
-		f.block_mod = { value = 1, special = {}}
-	end
-	if not f.req_item_mod then
-		f.req_item_mod = { value = 1, special = {}}
-	end
-	if not f.value_mod then
-		f.value_mod = { value = 1, special = {}}
-	end
-	if not f.uses_mod then
-		f.uses_mod = { value = 1, special = {}}
-	end
-	if not f.req_item_cnt_mod then
-		f.req_item_cnt_mod = { value = 1, special = {}}
-	end
+	local f = {}
+	
+	if value_map[item_size:get_name()]	 		then f.size_mod 		= {value = value_map[item_size:get_name()].value, special = value_map[item_size:get_name()].special} end
+	if value_map[item_block:get_name()] 		then f.block_mod 		= {value = value_map[item_block:get_name()].value, special = value_map[item_block:get_name()].special} end
+	if value_map[item_req_item:get_name()] 		then f.req_item_mod 	= {value = value_map[item_req_item:get_name()].value, special = value_map[item_req_item:get_name()].special} end
+	if value_map[item_value:get_name()] 		then f.value_mod 		= {value = value_map[item_value:get_name()].value, special = value_map[item_value:get_name()].special} end
+	if value_map[item_uses:get_name()] 			then f.uses_mod 		= {value = value_map[item_uses:get_name()].value, special = value_map[item_uses:get_name()].special} end
+	if value_map[item_req_item_cnt:get_name()] 	then f.req_item_cnt_mod = {value = value_map[item_req_item_cnt:get_name()].value, special = value_map[item_req_item_cnt:get_name()].special} end
 	return f
 end
 
@@ -344,6 +330,7 @@ minetest.register_node("spelltest:researcher",{
 	description = "Researcher",
 	can_dig = true,
 	light_source = 8,
+	paramtype2 = "facedir",
 	tiles = {
 		"researcher_top_empty.png",
 		"researcher.png",
@@ -424,7 +411,7 @@ minetest.register_node("spelltest:researcher",{
 			mods.specials = get_specials_from_table(mods)
 			
 			-- Thanks @kevin.fiegenbaum [https://gitlab.com/kevin.fiegenbaum] for helping with various calculations!
-			local max_single_block_value = 60
+			local max_single_block_value = 100
 			local max_length = 50
 			local max_width = 50
 			local max_height = 50
@@ -446,7 +433,7 @@ minetest.register_node("spelltest:researcher",{
 			local factor_ph2 = math.min(mods.req_item_cnt_mod.value, mean_sum) / mean_sum
 			
 			mods.size_mod.value = (mods.size_mod.value / max_single_block_value) * factor_size
-			mods.value_mod.value = (mods.value_mod.value / max_single_block_value) * factor_size
+			mods.value_mod.value = (mods.value_mod.value / max_single_block_value) * factor_value
 			
 			local llength = math.ceil(mods.size_mod.value * factor_length * max_length)
 			local lheight = math.ceil(mods.size_mod.value * factor_height * max_height)
@@ -458,16 +445,7 @@ minetest.register_node("spelltest:researcher",{
 			local lph2 = (mods.req_item_cnt_mod.value / max_single_block_value) * factor_ph2 * max_ph2
 			local lstr = ""
 			
-			-- fix parameters in case of certain effects
-			if effect == "spell_effect_set_time" then -- limited to value 0 - 1
-				lvalue = lvalue / 100
-				if lvalue < 0 or lvalue > 1 then
-					lvalue = 0
-				end
-			elseif effect == "spell_effect_low_gravity" then -- should be lower the higher the value
-				lvalue = (max_single_block_value - lvalue) / max_single_block_value
-			end
-			
+			-- fix parameters in case of certain effects			
 			local houses = {
 				["plain"] = {"House_Plain_1", "House_Plain_2"},
 				["simple"] = {"House_Simple_1", "House_Simple_2"},

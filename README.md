@@ -84,6 +84,8 @@ Now that's what I'm talking about! Free mese lamps \ o /
 
 Pick different ingredients, mix them up, put them in different slots and watch what happens. It's all dynamic and the results can be unexpected but fun!
 
+If you've created a spell that you like, make sure to renew it before you use all its charges. You can use the usual crafting interface to recharge your spells. Just place them there with coal, gold-ingots or diamonds to restore some spell uses.
+
 # What's added
 
 ## Commands

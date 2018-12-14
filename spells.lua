@@ -56,6 +56,223 @@ function register_projectile(p_name, p_texture, p_velocity, p_duration, p_parame
 	})
 end
 
+-- a,b,c are x,y,z coordinates of the square oriented, relative to the central_pointer
+-- x_mod, y_mod, z_mod the direction of "up"
+-- half_square_side_length
+-- central_pointer, the central point to evolve the square around
+-- height_offset relative to the central_pointer
+local function draw_square(dir_obj, i, half_square_side_length, height_offset, central_pointer, user, block)
+  pointer = {x = 0, y = 0, z = 0}
+  local x = dir_obj.x
+  local y = dir_obj.y
+  local z = dir_obj.z
+  local curr_height = height_offset
+  local base_edge = half_square_side_length
+--use symmetry and calculate only one half of one side
+  if math.abs(dir_obj.y_mod) == 1 then
+    x = base_edge
+    y = dir_obj.y_mod * curr_height
+    z = i
+
+    -- first two sides
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z - z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z - z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    -- other two sides
+    pointer.x = central_pointer.x + z
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + x
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + z
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z - x
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - z
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + x
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - z
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z - x
+
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+
+  elseif math.abs(dir_obj.x_mod) == 1 then
+    x = dir_obj.x_mod * curr_height
+    y = base_edge
+    z = i
+
+
+    -- first two sides
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y - y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z - z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y - y
+    pointer.z = central_pointer.z - z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    -- other two sides
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + z
+    pointer.z = central_pointer.z + y
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + z
+    pointer.z = central_pointer.z - y
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y - z
+    pointer.z = central_pointer.z + y
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y - z
+    pointer.z = central_pointer.z - y
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+  else
+    x = base_edge
+    y = i
+    z = dir_obj.z_mod * curr_height
+
+    -- first two sides
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + x
+    pointer.y = central_pointer.y - y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - x
+    pointer.y = central_pointer.y + y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - x
+    pointer.y = central_pointer.y - y
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    -- other two sides
+    pointer.x = central_pointer.x + y
+    pointer.y = central_pointer.y + x
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - y
+    pointer.y = central_pointer.y + x
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x + y
+    pointer.y = central_pointer.y - x
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+
+    pointer.x = central_pointer.x - y
+    pointer.y = central_pointer.y - x
+    pointer.z = central_pointer.z + z
+    if not minetest.is_protected(pointer, user:get_player_name()) then
+      minetest.set_node(pointer, {name = block})
+    end
+  end
+end
+
+local function get_direction_object(pointed_thing)
+  local pos1 = pointed_thing.above
+  local pos2 = pointed_thing.under
+  local x_mod = pos1.x - pos2.x
+  local y_mod = pos1.y - pos2.y
+  local z_mod = pos1.z - pos2.z
+  local dir_obj = {x_mod = x_mod, y_mod = y_mod, z_mod = z_mod, x = 0, y = 0, z = 0, pos2 = {x = pos2.x, y = pos2.y, z = pos2.z}}
+  return dir_obj
+end
+
 --- SPELL EFFECTS ---
 -- parameters: str(schematic)
 function spell_effect_spawn_house(itemstack, user, pointed_thing, p_parameters, uses, description)
@@ -228,6 +445,7 @@ end
 -- parameters: value, duration
 function spell_effect_low_gravity(itemstack, user, pointed_thing, p_parameters, uses, description)
 	local gravity_value = p_parameters.value
+	gravity_value = (60 - gravity_value) / 60
 	local default_gravity_value = 1
 	local duration = p_parameters.duration
 	
@@ -244,7 +462,12 @@ end
 
 -- parameters: value
 function spell_effect_set_time(itemstack, user, pointed_thing, p_parameters, uses, description)
-	minetest.set_timeofday(p_parameters.value)
+	local value = p_parameters.value
+	value = value / 100
+	if value < 0 or value > 1 then
+		value = 0
+	end
+	minetest.set_timeofday(value)
 	return itemstack
 end
 
@@ -341,6 +564,96 @@ function spell_effect_waypoint_teleport(itemstack, user, pointed_thing, p_parame
 	return itemstack
 end
 
+-- parameters: height, block
+function spell_effect_make_skyscraper(itemstack, user, pointed_thing, p_parameters, uses, description)
+  local pos1 = pointed_thing.above
+  if not pos1 then
+  	return itemstack
+  end
+  local node = nil
+  local dir_obj = get_direction_object(pointed_thing)
+
+  local block = p_parameters.block
+
+  local height = math.floor(p_parameters.height)
+  local curr_height = 0
+  local i = 0
+  local base_edge
+	local central_pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+	local pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+  base_edge = 0.5 * math.sqrt(3 * height)
+  repeat
+  	i = 0
+  	-- repeat for every height
+  	repeat
+      draw_square(dir_obj, i, base_edge, curr_height, central_pointer, user, block)
+  		i = i + 1
+  	until ( i > base_edge + 1 )
+    curr_height = curr_height + 1
+  	base_edge = 0.5 * math.sqrt(3 * (height - curr_height) )
+  	base_edge = base_edge-1
+  until (height < curr_height + 1)
+
+	return itemstack
+end
+
+-- parameters: block, height
+function spell_effect_make_tent(itemstack, user, pointed_thing, p_parameters, uses, description)
+  local pos1 = pointed_thing.above
+  if not pos1 then
+  	return itemstack
+  end
+  local node = nil
+  local dir_obj = get_direction_object(pointed_thing)
+
+  local block = p_parameters.block
+
+  local height = math.floor(p_parameters.height)
+  local i = 0
+  local base_edge
+	local central_pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+  local pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+  repeat
+  	base_edge = 0.5 * math.sqrt(3 * height)
+  	-- repeat for every height
+  	repeat
+	  	draw_square(dir_obj, i, base_edge, height, central_pointer, user, block)
+	  	i = i + 1
+  	until ( i > base_edge +1 )
+  	height = height -1
+  until (height < 5)
+	return itemstack
+end
+
+-- params: height, block
+function spell_effect_make_pyramid(itemstack, user, pointed_thing, p_parameters, uses, description)
+  local pos1 = pointed_thing.above
+  if not pos1 then
+  	return itemstack
+  end
+  local node = nil
+  local dir_obj = get_direction_object(pointed_thing)
+  local block = p_parameters.block
+  local height = math.floor(p_parameters.height)
+  local curr_height = 0
+  local i = 0
+  local base_edge = 0.5 * math.sqrt(3 * height)
+  local central_pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+  local pointer = {x = dir_obj.pos2.x , y = dir_obj.pos2.y, z = dir_obj.pos2.z }
+  repeat
+  	i = 0
+  	-- repeat for every height
+  	repeat
+			draw_square(dir_obj, i, base_edge, curr_height, central_pointer, user, block)
+  		i = i + 1
+  	until ( i > base_edge )
+    curr_height = curr_height + 1
+  	base_edge = base_edge-1
+  until ( base_edge  < 0)
+	return itemstack
+end
+
+
 -- parameters: block, width, height, length, value
 function spell_effect_excavate(itemstack, user, pointed_thing, p_parameters, uses, description)
 	local pos1 = pointed_thing.above
@@ -356,8 +669,6 @@ function spell_effect_excavate(itemstack, user, pointed_thing, p_parameters, use
 	local length = math.ceil(p_parameters.length * (p_parameters.value / 150))
 	local width = math.ceil(p_parameters.width * (p_parameters.value / 150));
 	local height = math.ceil(p_parameters.height * (p_parameters.value / 150));
-
-	minetest.chat_send_player(user:get_player_name(), "y_mod:" .. y_mod .. " | x_mod:" ..x_mod .. " | z_mod: " .. z_mod)
 
 	height = height / 2
 	width = width / 2
@@ -378,10 +689,11 @@ function spell_effect_excavate(itemstack, user, pointed_thing, p_parameters, use
 				}
 			end
 			for l = 1, length do
-				node = minetest.get_node(pointer)
+				node = minetest.get_node_or_nil(pointer)
 				if node then
 					minetest.dig_node(pointer)
 				end
+				
 				pointer.x = pointer.x - x_mod
 				pointer.y = pointer.y - y_mod
 				pointer.z = pointer.z - z_mod
@@ -462,6 +774,24 @@ function spell_effect_place_wall(itemstack, user, pointed_thing, p_parameters, u
 			pos.z = pos.z + 1
 		end
 	end
+	return itemstack
+end
+
+-- parameters: block, height
+function spell_effect_make_cube(itemstack, user, pointed_thing, p_parameters, uses, description)
+	local pos1 = pointed_thing.above
+	if not pos1 then
+		return itemstack
+	end
+	local node = nil
+	local pos2 = pointed_thing.under
+	local x_mod = pos1.x - pos2.x
+	local y_mod = pos1.y - pos2.y
+	local z_mod = pos1.z - pos2.z
+
+	local block = p_parameters.block
+	p_parameters.height = math.floor(p_parameters.height / 4)
+	local central_pointer = {x = pos2.x , y = pos2.y, z = pos2.z }
 	return itemstack
 end
 
