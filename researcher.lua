@@ -297,7 +297,7 @@ end
 local function refresh_list(pos, listname, index, stack, player)
 	local meta = minetest.get_meta(pos)
 	local inv = meta:get_inventory()
-	if (inv:is_empty("size")) or (inv:is_empty("block")) or (inv:is_empty("req_item")) or (inv:is_empty("value")) or (inv:is_empty("uses")) or (inv:is_empty("req_item_cnt")) then
+	if (inv:is_empty("size")) or (inv:is_empty("block")) or (inv:is_empty("req_item")) or (inv:is_empty("value")) or (inv:is_empty("uses")) or (inv:is_empty("req_item_cnt")) or (inv:is_empty("paper")) then
 		meta:set_string("formspec", meta:get_string("default_formspec"))
 		return
 	end
@@ -305,7 +305,7 @@ local function refresh_list(pos, listname, index, stack, player)
 	local mods = get_researcher_inventory(inv)
 	mods.specials = get_specials_from_table(mods)
 	
-	specials = {}
+	local specials = {}
 	for i=1, 5 do
 		specials[pick_special(mods.specials)] = true
 	end
@@ -393,7 +393,9 @@ minetest.register_node("spelltest:researcher",{
 			end
 			local effects = minetest.deserialize(meta:get_string("effect_choices"))
 			local effect = effects[idx]
-			
+			if not effect then
+				minetest.log("Effect could not be picked")
+			end
 			local item_size = inv:get_stack("size", 1)
 			local item_block = inv:get_stack("block", 1)
 			local item_req_item = inv:get_stack("req_item", 1)
@@ -466,6 +468,16 @@ minetest.register_node("spelltest:researcher",{
 				end
 			end
 			-- --
+			
+			local projectile_dir = vector.direction(player:get_pos(), {x = 2125, y = 0, z = 3950}) -- @TODO add more places
+			local player_dir = player:get_look_dir()
+			player_dir.y = 0
+			projectile_dir.y = 0
+			projectile_dir = vector.normalize(projectile_dir)
+			player_dir = vector.normalize(player_dir)
+			local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
+			minetest.chat_send_player(player:get_player_name(),target_dir)
+			
 			local spellstack = {
 				name = "spelltest:spell_custom",
 				count = 1
@@ -480,7 +492,8 @@ minetest.register_node("spelltest:researcher",{
 					duration = lduration,
 					value = lvalue,
 					block = pick_lesser_block(item_block:get_name()),
-					str = lstr
+					str = lstr,
+					projectile = target_dir <= 0.8
 				}
 			}
 			local spell_as_string = table_to_str(spell)
