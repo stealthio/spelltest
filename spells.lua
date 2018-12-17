@@ -64,7 +64,7 @@ local custom_projectile = {
 	callstring = "",
 	on_collision_parameters = {},
 	duration = 0,
-	prev_pos = {},
+	prev_pos = nil,
 	values_set = false,
 }
 
@@ -88,9 +88,9 @@ end
 
 function custom_projectile:on_step(dtime)
 	if self.values_set then
-		local pos = self.object:getpos()
+		local pos = self.object:get_pos()
 		local n = minetest.get_node(pos).name
-		if self.prev_pos then
+		if self.prev_pos and pos then
 			if n ~= "spelltest:custom_projectile" and n ~= "air" then
 				local dir = vector.direction(self.prev_pos,pos)
 				local raycast = minetest.raycast(self.prev_pos, vector.add(self.prev_pos, vector.multiply(dir,2)), false)			
@@ -106,21 +106,24 @@ function custom_projectile:on_step(dtime)
 					self.object:remove()
 				end
 			end
-			-- local objs = minetest.get_objects_inside_radius({x=self.prev_pos.x, y=self.prev_pos.y, z=self.prev_pos.z},2)
-			-- for k, obj in pairs(objs) do
-				-- if obj:get_luaentity() ~= nil then
-					-- if obj:get_luaentity().name ~= "spelltest:custom_projectile" and obj:get_luaentity().name ~= "__builtin:item" then
-						-- local call = cust_load_string(self.callstring)
-						-- call({i = self.on_collision_parameters.i,
-							  -- u = self.on_collision_parameters.u,
-							  -- p = {type = "node", under={x = math.floor(pos.x), y = math.floor(pos.y), z = math.floor(pos.z)}, above={x = math.floor(self.prev_pos.x), y = math.floor(self.prev_pos.y), z = math.floor(self.prev_pos.z)}},
-							  -- s = self.on_collision_parameters.s,
-							  -- us = self.on_collision_parameters.us,
-							  -- d = self.on_collision_parameters.d})
-						-- self.object:remove()
-					-- end
-				-- end
-			-- end
+			local objs = minetest.get_objects_inside_radius(pos,2)
+			for k, obj in pairs(objs) do
+				if obj:get_luaentity() ~= nil then
+					if obj:get_luaentity().name ~= "spelltest:custom_projectile" and obj:get_luaentity().name ~= "__builtin:item" then
+						local dir = vector.direction(self.prev_pos,pos)
+						local raycast = minetest.raycast(self.prev_pos, vector.add(self.prev_pos, vector.multiply(dir,2)), true)			
+						local pointed_thing = raycast:next()					
+						local call = cust_load_string(self.callstring)
+						call({i = self.on_collision_parameters.i,
+							  u = obj,
+							  p = pointed_thing,
+							  s = self.on_collision_parameters.s,
+							  us = self.on_collision_parameters.us,
+							  d = self.on_collision_parameters.d})
+						self.object:remove()
+					end
+				end
+			end
 		end
 		self.prev_pos = {x=pos.x, y = pos.y, z = pos.z}
 	end
@@ -444,14 +447,12 @@ end
 
 -- parameters: value
 function spell_effect_heal(itemstack, user, pointed_thing, p_parameters, uses, description)
-	local max_uses = uses
 	local healValue = p_parameters.value
-	local mhp = tonumber(user:get_properties()['hp_max'])
-	if(user:get_hp() + healValue > mhp) then
-		user:set_hp(mhp)
-	else
-		user:set_hp(user:get_hp() + healValue)
-	end
+	user:set_hp(user:get_hp() + healValue)
+	user:punch(user, 1.0, {
+		full_punch_interval=1.0,
+		damage_groups={fleshy=3},
+	}, nil)
 	return itemstack
 end
 
@@ -461,6 +462,8 @@ function spell_effect_low_gravity(itemstack, user, pointed_thing, p_parameters, 
 	gravity_value = (60 - gravity_value) / 60
 	local default_gravity_value = 1
 	local duration = p_parameters.duration
+	
+	
 	
 	user:set_physics_override({
 		gravity = gravity_value,
@@ -490,7 +493,7 @@ function spell_effect_place_block(itemstack, user, pointed_thing, p_parameters, 
 	if not pos then
 		return itemstack
 	end
-	checked_set_node (pos, 0, 0, 0, block , user)
+	checked_set_node(pos, 0, 0, 0, p_parameters.block , user)
 	return itemstack
 end
 

@@ -476,7 +476,6 @@ minetest.register_node("spelltest:researcher",{
 			projectile_dir = vector.normalize(projectile_dir)
 			player_dir = vector.normalize(player_dir)
 			local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
-			minetest.chat_send_player(player:get_player_name(),target_dir)
 			
 			local spellstack = {
 				name = "spelltest:spell_custom",
