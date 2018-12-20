@@ -174,6 +174,17 @@ local effect_display_name_map = {
 	["spell_effect_make_cube"] = "Summon Cube"
 }
 
+local function is_looking_at_point(player, point, tolerance)
+	local projectile_dir = vector.direction(player:get_pos(), point)
+	local player_dir = player:get_look_dir()
+	player_dir.y = 0
+	projectile_dir.y = 0
+	projectile_dir = vector.normalize(projectile_dir)
+	player_dir = vector.normalize(player_dir)
+	local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
+	return target_dir <= tolerance
+end
+
 local function allow_metadata_inventory_put(pos, listname, index, stack, player)
 	if minetest.is_protected(pos, player:get_player_name()) then
 		return 0
@@ -243,12 +254,18 @@ local function get_researcher_inventory(inv)
 	
 	local f = {}
 	
-	if value_map[item_size:get_name()]	 		then f.size_mod 		= {value = value_map[item_size:get_name()].value, special = value_map[item_size:get_name()].special} end
-	if value_map[item_block:get_name()] 		then f.block_mod 		= {value = value_map[item_block:get_name()].value, special = value_map[item_block:get_name()].special} end
-	if value_map[item_req_item:get_name()] 		then f.req_item_mod 	= {value = value_map[item_req_item:get_name()].value, special = value_map[item_req_item:get_name()].special} end
-	if value_map[item_value:get_name()] 		then f.value_mod 		= {value = value_map[item_value:get_name()].value, special = value_map[item_value:get_name()].special} end
-	if value_map[item_uses:get_name()] 			then f.uses_mod 		= {value = value_map[item_uses:get_name()].value, special = value_map[item_uses:get_name()].special} end
-	if value_map[item_req_item_cnt:get_name()] 	then f.req_item_cnt_mod = {value = value_map[item_req_item_cnt:get_name()].value, special = value_map[item_req_item_cnt:get_name()].special} end
+	if value_map[item_size:get_name()]	 		then f.size_mod 		= {value = value_map[item_size:get_name()].value, special = value_map[item_size:get_name()].special} else
+	f.size_mod = {value = 1, special = {}}end
+	if value_map[item_block:get_name()] 		then f.block_mod 		= {value = value_map[item_block:get_name()].value, special = value_map[item_block:get_name()].special} else
+	f.block_mod = {value = 1, special = {}}end
+	if value_map[item_req_item:get_name()] 		then f.req_item_mod 	= {value = value_map[item_req_item:get_name()].value, special = value_map[item_req_item:get_name()].special} else
+	f.req_item_mod = {value = 1, special = {}}end
+	if value_map[item_value:get_name()] 		then f.value_mod 		= {value = value_map[item_value:get_name()].value, special = value_map[item_value:get_name()].special} else
+	f.value_mod = {value = 1, special = {}}end
+	if value_map[item_uses:get_name()] 			then f.uses_mod 		= {value = value_map[item_uses:get_name()].value, special = value_map[item_uses:get_name()].special} else
+	f.uses_mod = {value = 1, special = {}}end
+	if value_map[item_req_item_cnt:get_name()] 	then f.req_item_cnt_mod = {value = value_map[item_req_item_cnt:get_name()].value, special = value_map[item_req_item_cnt:get_name()].special} else
+	f.req_item_cnt_mod = {value = 1, special = {}}end
 	return f
 end
 
@@ -294,6 +311,25 @@ local function pick_special(specials)
 	end
 end
 
+local function val_to_descriptor(value, max_value)
+	local rel_val = value/max_value
+	local desc = {
+		["Bad"] = 0.03,
+		["Okay"] = 0.08,
+		["Fair"] = 0.15,
+		["Good"] = 0.4,
+		["Excellent"] = 0.8,
+		["Perfect"] = 1
+	}
+	local curr_val = "Perfect"
+	for k,v in pairs(desc) do
+		if rel_val <= v and v <= desc[curr_val] then
+			curr_val = k
+		end
+	end
+	return curr_val
+end
+
 local function refresh_list(pos, listname, index, stack, player)
 	local meta = minetest.get_meta(pos)
 	local inv = meta:get_inventory()
@@ -318,8 +354,11 @@ local function refresh_list(pos, listname, index, stack, player)
 		table.insert(a, k)
 	end
 	meta:set_string("effect_choices", minetest.serialize(a))
-	possible_effects = possible_effects:sub(1, -2)
-	meta:set_string("formspec", meta:get_string("default_formspec") .. "textlist[3.5,6.15;4.8,1.5;possible_effects;" .. possible_effects .. "]")
+	possible_effects = possible_effects:sub(1, -2)	
+	
+	meta:set_string("formspec", meta:get_string("default_formspec") ..
+		"textlist[3.5,6.15;4.8,1.5;possible_effects;" .. possible_effects .. "]"..
+		"textlist[8.4,0;2.5,3;results;Size: " .. val_to_descriptor(mods.size_mod.value, 100) .. ",Block: " .. val_to_descriptor(mods.block_mod.value, 100) .. ",Duration: " .. val_to_descriptor(mods.value_mod.value, 100) .. ",Uses: " .. val_to_descriptor(mods.uses_mod.value, 100) .. ",Projectile: " .. val_to_str(is_looking_at_point(player, {x = 2125, y = 0, z = 3950}, 0.8)) .. "]")
 end
 
 local bool_to_number = {
@@ -343,7 +382,7 @@ minetest.register_node("spelltest:researcher",{
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
 		meta:set_string("default_formspec",
-			"size[9,12]" ..
+			"size[11,12;]" ..
 			"image[1,-0.7;8.5,8.5;researcher_bg.png]"..
 			"list[context;size;1,0.5;1,1;]" ..
 			"list[context;block;4,0;1,1;]" ..
@@ -367,7 +406,6 @@ minetest.register_node("spelltest:researcher",{
 		inv:set_size('uses', 1)
 		inv:set_size('req_item_cnt', 1)
 	end,
-	
 	on_receive_fields = function(pos, formname, fields, player)
 	local meta = minetest.get_meta(pos)
 		if(fields.possible_effects) then
@@ -447,13 +485,7 @@ minetest.register_node("spelltest:researcher",{
 			local lstr = ""
 			local lblock = pick_lesser_block(item_block:get_name())
 			
-			local projectile_dir = vector.direction(player:get_pos(), {x = 2125, y = 0, z = 3950}) -- @TODO add more places
-			local player_dir = player:get_look_dir()
-			player_dir.y = 0
-			projectile_dir.y = 0
-			projectile_dir = vector.normalize(projectile_dir)
-			player_dir = vector.normalize(player_dir)
-			local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
+
 			
 			-- fix parameters in case of certain effects			
 			
@@ -505,7 +537,7 @@ minetest.register_node("spelltest:researcher",{
 					value = lvalue,
 					block = lblock,--pick_lesser_block(item_block:get_name()),
 					str = lstr,
-					projectile = target_dir <= 0.8
+					projectile = is_looking_at_point(player, {x = 2125, y = 0, z = 3950}, 0.8)
 				}
 			}
 			local spell_as_string = table_to_str(spell)
