@@ -376,7 +376,6 @@ minetest.register_node("spelltest:researcher",{
 				meta:set_int("researcher_selected_idx", event.index)
 			end
 		elseif(fields.confirm) then 
-
 			local inv = meta:get_inventory()
 			if inv:is_empty("paper") then
 				minetest.chat_send_player(player:get_player_name(), "Researcher requires paper to work")
@@ -446,8 +445,29 @@ minetest.register_node("spelltest:researcher",{
 			local lph1 = (mods.req_item_mod.value / max_single_block_value) * factor_ph1 * max_ph1
 			local lph2 = (mods.req_item_cnt_mod.value / max_single_block_value) * factor_ph2 * max_ph2
 			local lstr = ""
+			local lblock = pick_lesser_block(item_block:get_name())
+			
+			local projectile_dir = vector.direction(player:get_pos(), {x = 2125, y = 0, z = 3950}) -- @TODO add more places
+			local player_dir = player:get_look_dir()
+			player_dir.y = 0
+			projectile_dir.y = 0
+			projectile_dir = vector.normalize(projectile_dir)
+			player_dir = vector.normalize(player_dir)
+			local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
 			
 			-- fix parameters in case of certain effects			
+			
+			for i=-1, 1 do
+				for j=-1, 1 do
+					for k = -1, 1 do
+						local node = minetest.get_node({x = pos.x + i, y = pos.y + k, z = pos.z + j})
+						if node.name == "default:water_source" or node.name == "default:lava_source" then
+							lblock = node.name
+						end
+					end
+				end
+			end
+			
 			local houses = {
 				["plain"] = {"House_Plain_1", "House_Plain_2"},
 				["simple"] = {"House_Simple_1", "House_Simple_2"},
@@ -468,14 +488,7 @@ minetest.register_node("spelltest:researcher",{
 				end
 			end
 			-- --
-			
-			local projectile_dir = vector.direction(player:get_pos(), {x = 2125, y = 0, z = 3950}) -- @TODO add more places
-			local player_dir = player:get_look_dir()
-			player_dir.y = 0
-			projectile_dir.y = 0
-			projectile_dir = vector.normalize(projectile_dir)
-			player_dir = vector.normalize(player_dir)
-			local target_dir = math.acos(player_dir.x * projectile_dir.x + player_dir.z * projectile_dir.z)
+
 			
 			local spellstack = {
 				name = "spelltest:spell_custom",
@@ -490,7 +503,7 @@ minetest.register_node("spelltest:researcher",{
 					width = lwidth,
 					duration = lduration,
 					value = lvalue,
-					block = pick_lesser_block(item_block:get_name()),
+					block = lblock,--pick_lesser_block(item_block:get_name()),
 					str = lstr,
 					projectile = target_dir <= 0.8
 				}
