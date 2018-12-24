@@ -367,7 +367,14 @@ local bool_to_number = {
 }
 minetest.register_node("spelltest:researcher",{
 	description = "Researcher",
-	can_dig = true,
+	can_dig = function(pos, player)
+		local meta = minetest.get_meta(pos)
+		local inv = meta:get_inventory()
+		if inv:is_empty('size') and inv:is_empty('block') and inv:is_empty('req_item') and inv:is_empty('paper') and inv:is_empty('value') and inv:is_empty('uses') and inv:is_empty('req_item_cnt') then
+			return true
+		end
+		return false
+	end,
 	light_source = 8,
 	paramtype2 = "facedir",
 	tiles = {
@@ -378,7 +385,8 @@ minetest.register_node("spelltest:researcher",{
 		"researcher.png",
 		"researcher_front.png"
 	},
-	groups = {shoppy=3, snappy = 1},
+	sounds = default:node_sound_stone_defaults(),
+	groups = {shoppy=3, snappy = 1, flammable = 1},
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
 		meta:set_string("default_formspec",
@@ -558,6 +566,7 @@ minetest.register_node("spelltest:researcher",{
 			inv:set_stack('value', 1, nil)
 			inv:set_stack('uses', 1, nil)
 			inv:set_stack('req_item_cnt', 1, nil)
+			minetest.sound_play("default_item_smoke")
 		end
     end,
 	
