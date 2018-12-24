@@ -549,26 +549,30 @@ function spell_effect_tunnel(itemstack, user, pointed_thing, p_parameters, uses,
 end
 
 function spell_effect_waypoint_teleport(itemstack, user, pointed_thing, p_parameters, uses, description)
-	local control = user:get_player_control()
-	local meta = itemstack:get_meta()
-	if control.sneak then
-		local waypoint_string = minetest.serialize({x = user:get_pos().x,y = user:get_pos().y,z = user:get_pos().z})
-		meta:set_string("waypoint", waypoint_string)
-		minetest.chat_send_player(user:get_player_name(), "Waypoint set to: " .. waypoint_string)
-		return itemstack
+	if p_parameters.projectile then
+		user:set_pos(pointed_thing.above)
 	else
-		local waypoint_string = meta:get_string("waypoint")
-		local waypoint = nil
-		if waypoint_string then
-			waypoint = minetest.deserialize(waypoint_string)
-		else
-			minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+		local control = user:get_player_control()
+		local meta = itemstack:get_meta()
+		if control.sneak then
+			local waypoint_string = minetest.serialize({x = user:get_pos().x,y = user:get_pos().y,z = user:get_pos().z})
+			meta:set_string("waypoint", waypoint_string)
+			minetest.chat_send_player(user:get_player_name(), "Waypoint set to: " .. waypoint_string)
 			return itemstack
-		end
-		if waypoint then
-			user:set_pos(waypoint)
 		else
-			minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+			local waypoint_string = meta:get_string("waypoint")
+			local waypoint = nil
+			if waypoint_string then
+				waypoint = minetest.deserialize(waypoint_string)
+			else
+				minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+				return itemstack
+			end
+			if waypoint then
+				user:set_pos(waypoint)
+			else
+				minetest.chat_send_player(user:get_player_name(), "Sneak use this item to set a waypoint")
+			end
 		end
 	end
 	return itemstack

@@ -163,7 +163,7 @@ local effect_display_name_map = {
 	["spell_effect_tree"] = "Grow Tree",
 	["spell_effect_tunnel"] = "Dig Tunnel",
 	["spell_effect_excavate"] = "Excavate",
-	["spell_effect_waypoint_teleport"] = "Teleportation (Waypoint)",
+	["spell_effect_waypoint_teleport"] = "Teleportation",
 	["spell_effect_low_gravity"] = "Manipulate Gravity",
 	["spell_effect_set_time"] = "Manipulate Daytime",
 	["spell_effect_spawn_house"] = "Summon House",
@@ -385,7 +385,12 @@ minetest.register_node("spelltest:researcher",{
 		"researcher.png",
 		"researcher_front.png"
 	},
-	sounds = default:node_sound_stone_defaults(),
+	sounds = {
+		footstep = {name = "default_wood_footstep", gain = 0.625},
+		dig = {name = "default_wood_footstep", gain = 0.7},
+		dug = {name = "default_wood_footstep", gain = 0.8},
+		place = {name = "default_wood_footstep", gain = 0.8}
+	},
 	groups = {shoppy=3, snappy = 1, flammable = 1},
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
@@ -516,7 +521,7 @@ minetest.register_node("spelltest:researcher",{
 			}
 			
 			if effect == "spell_effect_spawn_house" then
-				luses = math.ceil(luses / 3)
+				luses = math.ceil(luses / 5)
 				if lvalue < 10 then
 					lstr = houses["plain"][math.random(#houses["plain"])]
 				elseif lvalue < 30 then
