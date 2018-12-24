@@ -488,7 +488,7 @@ minetest.register_node("spelltest:researcher",{
 
 			
 			-- fix parameters in case of certain effects			
-			
+			if luses <= 1 then luses = 2 end
 			for i=-1, 1 do
 				for j=-1, 1 do
 					for k = -1, 1 do
