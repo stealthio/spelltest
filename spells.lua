@@ -449,10 +449,6 @@ end
 function spell_effect_heal(itemstack, user, pointed_thing, p_parameters, uses, description)
 	local healValue = p_parameters.value
 	user:set_hp(user:get_hp() + healValue)
-	user:punch(user, 1.0, {
-		full_punch_interval=1.0,
-		damage_groups={fleshy=3},
-	}, nil)
 	return itemstack
 end
 

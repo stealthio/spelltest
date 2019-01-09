@@ -367,14 +367,14 @@ local bool_to_number = {
 }
 minetest.register_node("spelltest:researcher",{
 	description = "Researcher",
-	can_dig = function(pos, player)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
-		if inv:is_empty('size') and inv:is_empty('block') and inv:is_empty('req_item') and inv:is_empty('paper') and inv:is_empty('value') and inv:is_empty('uses') and inv:is_empty('req_item_cnt') then
-			return true
-		end
-		return false
-	end,
+	-- can_dig = function(pos, player)
+		-- local meta = minetest.get_meta(pos)
+		-- local inv = meta:get_inventory()
+		-- if inv:is_empty('size') and inv:is_empty('block') and inv:is_empty('req_item') and inv:is_empty('paper') and inv:is_empty('value') and inv:is_empty('uses') and inv:is_empty('req_item_cnt') then
+			-- return true
+		-- end
+		-- return false
+	-- end,
 	light_source = 8,
 	paramtype2 = "facedir",
 	tiles = {
@@ -391,7 +391,7 @@ minetest.register_node("spelltest:researcher",{
 		dug = {name = "default_wood_footstep", gain = 0.8},
 		place = {name = "default_wood_footstep", gain = 0.8}
 	},
-	groups = {shoppy=3, snappy = 1, flammable = 1},
+	groups = {choppy=3, snappy = 1, flammable = 1},
 	on_construct = function(pos)
 		local meta = minetest.get_meta(pos)
 		meta:set_string("default_formspec",
@@ -497,7 +497,7 @@ minetest.register_node("spelltest:researcher",{
 			local lph2 = (mods.req_item_cnt_mod.value / max_single_block_value) * factor_ph2 * max_ph2
 			local lstr = ""
 			local lblock = pick_lesser_block(item_block:get_name())
-			
+			local lprojectile = is_looking_at_point(player, {x = 2125, y = 0, z = 3950}, 0.8)
 
 			
 			-- fix parameters in case of certain effects			
@@ -532,6 +532,10 @@ minetest.register_node("spelltest:researcher",{
 					lstr = houses["luxury"][math.random(#houses["luxury"])]
 				end
 			end
+			
+			if effect == "spell_effect_heal" or effect == "spell_effect_low_gravity" or effect == "spell_effect_set_time" then
+				lprojectile = false
+			end
 			-- --
 
 			
@@ -548,9 +552,9 @@ minetest.register_node("spelltest:researcher",{
 					width = lwidth,
 					duration = lduration,
 					value = lvalue,
-					block = lblock,--pick_lesser_block(item_block:get_name()),
+					block = lblock,
 					str = lstr,
-					projectile = is_looking_at_point(player, {x = 2125, y = 0, z = 3950}, 0.8)
+					projectile = lprojectile
 				}
 			}
 			local spell_as_string = table_to_str(spell)
